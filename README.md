@@ -40,13 +40,13 @@ Com essas capacidades, o VAR torna-se uma solução inovadora, adaptável e estr
 
 ## 📂 Estrutura do Projeto
 
-/node_modules
-/prisma
+- /node_modules
+- /prisma
   -- /migrations/       # Histórico das migrações
   -- /schema.prisma     # Definição do banco de dados
   -- seed.ts           # Seed de dados iniciais
   -- seed-admin.ts     # Seed específico do admin central
-/src
+- /src
   -- config/           # Configurações iniciais
   -- controllers/      # Lógica das entidades
   -- middlewares/      # Autenticação, roles e logs
