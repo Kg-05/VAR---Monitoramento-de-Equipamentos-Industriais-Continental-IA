@@ -38,28 +38,6 @@ Com essas capacidades, o VAR torna-se uma solução inovadora, adaptável e estr
 
 - Cors & Dotenv → Configuração de segurança e variáveis de ambiente
 
-## 📂 Estrutura do Projeto
-
-- /node_modules
-- /prisma
-  -- /migrations/       # Histórico das migrações
-  -- /schema.prisma     # Definição do banco de dados
-  -- seed.ts           # Seed de dados iniciais
-  -- seed-admin.ts     # Seed específico do admin central
-- /src
-  -- config/           # Configurações iniciais
-  -- controllers/      # Lógica das entidades
-  -- middlewares/      # Autenticação, roles e logs
-  -- prisma/           # Cliente Prisma
-  -- routes/           # Definição das rotas
-  -- utils/            # Funções utilitárias
-  -- app.ts            # App Express
-  -- server.ts         # Inicialização do servidor
-.env                    # Variáveis de ambiente
-package.json
-tsconfig.json
-README.md
-
 ## ⚙️ Instalação e Configuração
 
 Clonar o repositório
