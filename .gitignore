@@ -1,0 +1,48 @@
+# ===============================
+# Node.js
+# ===============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===============================
+# Ambiente
+# ===============================
+.env
+.env.local
+.env.*.local
+
+# ===============================
+# Prisma
+# ===============================
+
+/prisma/*.db
+/prisma/*.sqlite
+
+
+!/prisma/schema.prisma
+!/prisma/migrations/
+!/prisma/seed.ts
+!/prisma/seed-admin.ts
+
+# ===============================
+# Logs
+# ===============================
+logs
+*.log
+*.log.*
+
+# ===============================
+# Sistema
+# ===============================
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Compilação (caso uses TS)
+# ===============================
+dist/
+build/
+*.tsbuildinfo
