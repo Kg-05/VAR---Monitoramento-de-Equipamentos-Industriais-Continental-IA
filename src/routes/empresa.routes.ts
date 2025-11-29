@@ -13,7 +13,7 @@ const router = Router();
 
 // Apenas ADMIN_CENTRAL pode manipular empresas
 router.post('/', autenticar, autorizar('ADMIN_CENTRAL'), criarEmpresa);
-router.get('/', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA'), listarEmpresas);
+router.get('/', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA', 'FUNCIONARIO'), listarEmpresas);
 router.get('/:id', autenticar, autorizar('ADMIN_CENTRAL'), detalharEmpresa);
 router.put('/:id', autenticar, autorizar('ADMIN_CENTRAL'), atualizarEmpresa);
 router.delete('/:id', autenticar, autorizar('ADMIN_CENTRAL'), removerEmpresa);

@@ -1,0 +1,520 @@
+/* style.css — Estilos customizados para VAR */
+
+:root {
+    --primary-color: #2669cc; /* Azul Principal */
+    --secondary-color: #1976d2; /* Azul Secundário */
+    --danger-color: #d32f2f;
+    --success-color: #388e3c;
+    --warning-color: #f57c00;
+    --info-color: #1976d2;
+    --light-bg: #f5f5f5;
+    --dark-text: #212121;
+    --light-border: #e0e0e0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+    /* Garante que o conteúdo ocupe toda a altura para o footer ficar no fim */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navbar customizada */
+.navbar {
+    background-color: var(--primary-color) !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.nav-link {
+    margin-left: 1rem;
+    color: rgba(255, 255, 255, 0.8) !important; /* Mais suave */
+    transition: color 0.3s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: white !important;
+    opacity: 1; /* Remove a opacidade no hover */
+}
+
+/* Título da Página */
+h1 {
+    font-weight: 300;
+    margin-bottom: 1.5rem; /* Adicionado espaçamento extra abaixo do título */
+    color: var(--secondary-color);
+}
+
+/* Container principal */
+.main-container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    flex-grow: 1; /* Permite que o container principal preencha o espaço, empurrando o footer */
+}
+
+/* Cards */
+.card {
+    border: 1px solid var(--light-border); /* Adiciona uma borda sutil */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Sombra mais suave */
+    border-radius: 8px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: none; /* Remove o movimento no hover para não desviar a atenção */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem; /* Ajusta o padding do cabeçalho */
+}
+
+/* Botões */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 500;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-sm {
+    padding: 0.3rem 0.6rem; /* Ajuste sutil no tamanho do botão pequeno */
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+/* Tabelas */
+.table {
+    background-color: white;
+    border-collapse: separate; /* Necessário para aplicar border-radius em tabelas */
+    border-spacing: 0;
+    margin-bottom: 0; /* Remove margem desnecessária do bootstrap padrão */
+}
+
+.table thead th {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-weight: 400;
+}
+
+/* Borda arredondada no topo da tabela, alinhada com o card-header */
+.card-body .table {
+    border-radius: 0 0 8px 8px; 
+    overflow: hidden; /* Garante que a borda arredondada seja visível */
+}
+
+.table tbody tr td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: #e9ecef; /* Cor de hover mais clara e profissional */
+}
+
+/* Formulários */
+.form-control {
+    border-radius: 6px;
+}
+
+.form-control:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.25rem rgba(38, 105, 204, 0.25); /* Usa primary-color com transparência */
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--dark-text);
+}
+
+/* Modals */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--light-border);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--light-border);
+}
+
+/* Alertas - NOTIFICATIONS (Mantido o seu estilo) */
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+/* ... (Resto dos estilos de alert) ... */
+
+/* Badge customizado (Mantido o seu estilo) */
+.badge {
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Footer */
+footer {
+    /* O flex-grow: 1 no main-container garante que o footer fique no final */
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    width: 100%;
+    margin-top: auto; /* Empurra o footer para o final */
+}
+
+/* Métrica Cards Melhoradas */
+.metric-card {
+    display: flex !important;
+    align-items: center;
+    padding: 0 !important;
+    overflow: hidden;
+    background: white;
+}
+
+.metric-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.metric-content {
+    padding: 1.25rem;
+    flex-grow: 1;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--dark-text);
+}
+
+.metric-label {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.875rem;
+    color: #757575;
+    text-transform: capitalize;
+}
+
+.metric-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+}
+
+/* Card de Alertas */
+.alerts-card {
+    border-radius: 12px !important;
+}
+
+.alerts-card .card-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+}
+
+/* Login Page */
+.login-body {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+.login-box {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-logo {
+    display: flex;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.login-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--dark-text);
+    margin: 0 0 0.5rem 0;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #9e9e9e;
+    font-size: 0.9rem;
+    margin: 0 0 2rem 0;
+}
+
+.login-input {
+    border: 1px solid #e0e0e0 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    background: #f8f9fa !important;
+    color: var(--dark-text) !important;
+    transition: all 0.3s ease;
+}
+
+.login-input:focus {
+    background: white !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(38, 105, 204, 0.1) !important;
+}
+
+.login-input::placeholder {
+    color: #bdbdbd;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+    border: none !important;
+    padding: 0.875rem 1rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(38, 105, 204, 0.3) !important;
+}
+
+.alert-login {
+    border: none !important;
+    border-radius: 8px !important;
+    background: #ffebee !important;
+    color: #c62828 !important;
+}
+
+.login-text-small {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+.login-link {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: color 0.3s;
+}
+
+.login-link:hover {
+    color: var(--secondary-color);
+}
+
+/* Responsive (Mantido o seu estilo) */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .table {
+        font-size: 0.875rem;
+    }
+
+    .table thead th {
+        font-size: 0.8rem;
+    }
+
+    .metric-card {
+        flex-direction: column !important;
+    }
+
+    .metric-icon {
+        width: 100%;
+        height: 60px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .login-box {
+        padding: 2rem;
+    }
+
+    .login-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Dark app shell (sidebar + content) - styles used by empresas.html */
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0e1020 0%, #0b0d18 100%);
+}
+
+.sidebar {
+    width: 260px;
+    background: #191a2a;
+    color: #cbd5e1;
+    padding: 24px 16px;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+}
+
+.sidebar-logo {
+    width: 140px;
+}
+
+.sidebar-nav {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-item {
+    color: #cbd5e1;
+    padding: 12px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.sidebar-item:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.sidebar-item.active {
+    background: #ffffff10;
+    color: #fff;
+    font-weight: 600;
+}
+
+.content {
+    flex: 1;
+    padding: 28px 40px;
+    color: #e6eef8;
+}
+
+.content-header .page-title {
+    margin: 0;
+    color: #fff;
+    font-size: 22px;
+}
+
+.search-input {
+    max-width: 520px;
+    background: #1e2f4b;
+    border: 1px solid #2b3040;
+    color: #e6eef8;
+}
+
+.panel {
+    background: transparent;
+    margin-top: 18px;
+}
+
+.panel-dark .panel-body {
+    background: #161824;
+    padding: 24px;
+    border-radius: 12px;
+}
+
+/* Form specific styles for panel-form (cadastrar empresa) */
+.panel-form .form-control {
+    background: #638ed4;
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #3264a0;
+    padding: 12px 14px;
+}
+
+.panel-form .form-label {
+    color: #bfcde0;
+}
+
+.panel-form .btn-primary {
+    background: linear-gradient(180deg, #313f7e 0%, #7750bf 100%);
+    border: none;
+    padding: 10px 26px;
+}
+
+.panel-form .btn-primary:hover {
+    opacity: 0.95;
+}
+
+.table-dark-custom {
+    width: 100%;
+    color: #dbe9ff;
+}
+
+.table-dark-custom thead th {
+    color: #9fb6d9;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    background: transparent;
+    font-weight: 600;
+    padding: 14px 12px;
+}
+
+.table-dark-custom tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.table-dark-custom tbody td {
+    padding: 18px 12px;
+    vertical-align: middle;
+    color: #3b5e92;
+}
+
+.table-dark-custom tbody tr td:last-child {
+    text-align: center;
+}
+
+.table-dark-custom .action-delete {
+    color: #ff5252;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2b6cf6, #7b2bdc);
+}
+
+@media (max-width: 992px) {
+    .sidebar { display: none; }
+    .content { padding: 18px; }
+}

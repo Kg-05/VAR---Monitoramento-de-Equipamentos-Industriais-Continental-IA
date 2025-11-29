@@ -14,8 +14,8 @@ const router = Router();
 // ADMIN_CENTRAL → gerencia todos
 // ADMIN_EMPRESA → gerencia apenas os seus próprios
 router.post('/', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA'), criarEquipamento);
-router.get('/', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA'), listarEquipamentos);
-router.get('/:id', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA'), detalharEquipamento);
+router.get('/', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA', 'FUNCIONARIO'), listarEquipamentos);
+router.get('/:id', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA', 'FUNCIONARIO'), detalharEquipamento);
 router.put('/:id', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA'), atualizarEquipamento);
 router.delete('/:id', autenticar, autorizar('ADMIN_CENTRAL', 'ADMIN_EMPRESA'), removerEquipamento);
 

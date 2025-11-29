@@ -112,3 +112,45 @@ export const removerUsuario = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Erro ao remover usuário', error });
   }
 };
+
+// Endpoint público de registro (signup)
+export const registroPublico = async (req: Request, res: Response) => {
+  try {
+    const { nome, email, senha } = req.body;
+
+    if (!nome || !email || !senha) {
+      return res.status(400).json({ message: 'Nome, email e senha são obrigatórios' });
+    }
+
+    if (senha.length < 6) {
+      return res.status(400).json({ message: 'Senha deve ter no mínimo 6 caracteres' });
+    }
+
+    const emailExistente = await prisma.usuario.findFirst({ where: { email }});
+    if (emailExistente) {
+      return res.status(400).json({ message: 'Email já em uso' });
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 10);
+
+    const usuario = await prisma.usuario.create({
+      data: { 
+        nome, 
+        email, 
+        senhaHash, 
+        papel: 'FUNCIONARIO',
+        ativo: true
+      }
+    });
+
+    res.status(201).json({
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      papel: usuario.papel,
+      message: 'Conta criada com sucesso! Faça login agora.'
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao criar conta', error });
+  }
+};

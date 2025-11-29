@@ -99,6 +99,7 @@ model Pagamento {
   id            String          @id @default(uuid())
   empresaId     String
   licencaId     String?
+  formaPagamentoId String?
   valor         Float
   moeda         String          @default("AOA")
   status        StatusPagamento @default(PENDENTE)
@@ -107,6 +108,7 @@ model Pagamento {
   atualizadoEm  DateTime        @updatedAt
   empresa       Empresa         @relation(fields: [empresaId], references: [id])
   licenca       Licenca?        @relation(fields: [licencaId], references: [id])
+  formaPagamento FormaPagamento? @relation(fields: [formaPagamentoId], references: [id])
 }
 
 model Equipamento {
@@ -135,6 +137,7 @@ model Dispositivo {
   atualizadoEm  DateTime  @updatedAt
   equipamento   Equipamento @relation(fields: [equipamentoId], references: [id])
   avarias       Avaria[]
+  registroImagens RegistroImagem[]
 }
 
 model Avaria {
@@ -186,4 +189,35 @@ model Log {
   criadoEm      DateTime   @default(now())
   empresa       Empresa?   @relation(fields: [empresaId], references: [id])
   usuario       Usuario?   @relation(fields: [usuarioId], references: [id])
+}
+
+// Registro de imagens capturadas por câmeras/dispositivos
+model RegistroImagem {
+  id               String    @id @default(uuid())
+  dispositivoId    String
+  timestampCaptura DateTime  @default(now())
+  caminhoArquivo   String
+  criadoEm         DateTime  @default(now())
+
+  dispositivo      Dispositivo @relation(fields: [dispositivoId], references: [id])
+  analises         ResultadoAnaliseIA[]
+}
+
+// Resultado da análise de IA para uma imagem
+model ResultadoAnaliseIA {
+  id                 String   @id @default(uuid())
+  registroImagemId   String
+  estadoDetectado    String
+  acuracia           Float?
+  timestampAnalise   DateTime @default(now())
+
+  registroImagem     RegistroImagem @relation(fields: [registroImagemId], references: [id])
+}
+
+// Forma de pagamento (ex: Transferência, Cartão, MBWAY, etc.)
+model FormaPagamento {
+  id        String     @id @default(uuid())
+  nome      String
+  descricao String?
+  pagamentos Pagamento[]
 }
