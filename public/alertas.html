@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alertas - VAR Monitoramento</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/index.html">📊 VAR Monitoramento</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/index.html">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" data-page="usuarios" href="#">Usuários</a></li>
+          <li class="nav-item"><a class="nav-link" data-page="empresas" href="#">Empresas</a></li>
+          <li class="nav-item"><a class="nav-link" data-page="equipamentos" href="#">Equipamentos</a></li>
+          <li class="nav-item"><a class="nav-link active" href="#">Alertas</a></li>
+          <li class="nav-item"><a class="nav-link" id="logoutBtn" href="#">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div data-notifications class="container mt-3"></div>
+
+  <div class="container main-container">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h1>🚨 Centro de Alertas</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5>Histórico de Alertas</h5>
+              </div>
+              <div class="col-auto">
+                <span class="badge bg-danger" id="alertCountBadge">0</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <table class="table" id="alertasTable">
+              <thead>
+                <tr>
+                  <th>ID Avaria</th>
+                  <th>Mensagem</th>
+                  <th>Severidade</th>
+                  <th>Data</th>
+                  <th>Status</th>
+                  <th>Reconhecido</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="7" class="text-center text-muted">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 VAR - Plataforma de Monitoramento | KG KITUXI TECH</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    async function loadAlertas() {
+      try {
+        const data = await alertas.listar();
+        const tbody = document.querySelector('#alertasTable tbody');
+        tbody.innerHTML = '';
+
+        const totalAlertas = data.length;
+        document.getElementById('alertCountBadge').textContent = totalAlertas;
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Nenhum alerta</td></tr>';
+          return;
+        }
+
+        data.forEach(alerta => {
+          const severidadeClass = alerta.avariaId === 'CRITICA' ? 'bg-danger' : alerta.avariaId === 'ALTA' ? 'bg-warning' : 'bg-info';
+          const statusBadge = alerta.status === 'ATIVO' ? '<span class="badge bg-danger">Ativo</span>' : '<span class="badge bg-success">Resolvido</span>';
+          const reconhecidoBadge = alerta.reconhecido ? '<span class="badge bg-success">✓ Sim</span>' : '<span class="badge bg-secondary">Não</span>';
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${alerta.avariaId}</td>
+              <td>${alerta.mensagem || 'N/A'}</td>
+              <td><span class="badge ${severidadeClass}">Alerta</span></td>
+              <td>${formatDate(alerta.dataCriacao)}</td>
+              <td>${statusBadge}</td>
+              <td>${reconhecidoBadge}</td>
+              <td>
+                ${!alerta.reconhecido ? `<button class="btn btn-sm btn-primary" onclick="reconhecerAlerta('${alerta.id}')">Reconhecer</button>` : '<span class="text-muted">-</span>'}
+              </td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        showError(error);
+      }
+    }
+
+    async function reconhecerAlerta(id) {
+      try {
+        await alertas.reconhecer(id, { reconhecido: true });
+        showNotification('Alerta reconhecido', 'success');
+        loadAlertas();
+      } catch (error) {
+        showError(error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAlertas);
+
+    setInterval(loadAlertas, 30000);
+  </script>
+</body>
+</html>

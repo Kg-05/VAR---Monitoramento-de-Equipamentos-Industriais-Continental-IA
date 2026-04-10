@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastrar Empresa - VAR Monitoramento</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <img src="/images/logo.svg" alt="Kituxi Tech" class="sidebar-logo">
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/index.html" class="sidebar-item">Dashboard</a>
+        <a href="/cadastrar-empresa.html" class="sidebar-item active">Cadastrar empresa</a>
+        <a href="/empresas.html" class="sidebar-item">Gerir empresas</a>
+        <a href="#" class="sidebar-item">Gestão payments</a>
+        <a href="#" class="sidebar-item">Documentos</a>
+        <a href="#" class="sidebar-item">Definições</a>
+        <a href="#" class="sidebar-item">Sair</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="content-header d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="page-title">Cadastrar empresa</h2>
+          <p class="text-muted">Complete os dados abaixo para registar uma nova empresa</p>
+        </div>
+        <div class="header-actions d-flex align-items-center">
+          <button class="btn btn-outline-light me-3">📅 Hoje</button>
+          <div class="profile d-flex align-items-center">
+            <div class="avatar"></div>
+            <div class="ms-2 text-white">Seu usuário</div>
+          </div>
+        </div>
+      </header>
+
+      <section class="panel panel-dark panel-form">
+        <div class="panel-body">
+          <form id="formCadastrarEmpresa">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label text-muted">Nome da empresa</label>
+                <input type="text" id="nomeEmpresa" class="form-control" placeholder="Digite o nome da empresa" required>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-muted">Nif da empresa</label>
+                <input type="text" id="nifEmpresa" class="form-control" placeholder="Digite o nif da empresa">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-muted">Endereço da empresa</label>
+                <input type="text" id="enderecoEmpresa" class="form-control" placeholder="Digite o endereço da empresa">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-muted">Objecto social da empresa</label>
+                <input type="text" id="objectoEmpresa" class="form-control" placeholder="Digite o objecto social da empresa">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-muted">Contacto do responsável</label>
+                <input type="text" id="contactoResponsavel" class="form-control" placeholder="Digite o contacto do responsável">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-muted">Email de contacto</label>
+                <input type="email" id="emailEmpresa" class="form-control" placeholder="Digite o email da empresa">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-muted">Número de funcionários</label>
+                <input type="number" id="numeroFuncionarios" class="form-control" placeholder="Opcional">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-muted">Setor</label>
+                <input type="text" id="setorEmpresa" class="form-control" placeholder="Ex: Telecomunicação">
+              </div>
+
+              <div class="col-12 text-end mt-3">
+                <button type="submit" class="btn btn-primary btn-lg">Finalizar cadastro</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 VAR - Plataforma de Monitoramento | KG KITUXI TECH</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    document.getElementById('formCadastrarEmpresa').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById('nomeEmpresa').value;
+      const nif = document.getElementById('nifEmpresa').value;
+      const endereco = document.getElementById('enderecoEmpresa').value;
+      const objecto = document.getElementById('objectoEmpresa').value;
+      const contacto = document.getElementById('contactoResponsavel').value;
+      const email = document.getElementById('emailEmpresa').value;
+      const numeroFuncionarios = document.getElementById('numeroFuncionarios').value;
+      const setor = document.getElementById('setorEmpresa').value;
+
+      try {
+        await empresas.criar({ nome, nif, email, contacto, endereco, objectoSocial: objecto, numeroFuncionarios, setor });
+        showNotification('Empresa criada com sucesso!', 'success');
+        setTimeout(() => { window.location.href = '/empresas.html'; }, 800);
+      } catch (err) {
+        showError(err);
+      }
+    });
+  </script>
+</body>
+</html>

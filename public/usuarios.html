@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuários - VAR Monitoramento</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/index.html">📊 VAR Monitoramento</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/index.html">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link active" href="#">Usuários</a></li>
+          <li class="nav-item"><a class="nav-link" data-page="empresas" href="#">Empresas</a></li>
+          <li class="nav-item"><a class="nav-link" data-page="equipamentos" href="#">Equipamentos</a></li>
+          <li class="nav-item"><a class="nav-link" data-page="alertas" href="#">Alertas</a></li>
+          <li class="nav-item"><a class="nav-link" id="logoutBtn" href="#">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div data-notifications class="container mt-3"></div>
+
+  <div class="container main-container">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h1>👥 Gerenciar Usuários</h1>
+      </div>
+    </div>
+
+    <!-- Botão Novo Usuário -->
+    <div class="row mb-3">
+      <div class="col-12">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#usuarioModal">+ Novo Usuário</button>
+      </div>
+    </div>
+
+    <!-- Tabela de Usuários -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>Lista de Usuários</h5>
+          </div>
+          <div class="card-body">
+            <table class="table" id="usuariosTable">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Papel</th>
+                  <th>Ativo</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5" class="text-center text-muted">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Novo/Editar Usuário -->
+  <div class="modal fade" id="usuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Novo Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="usuarioForm">
+            <div class="mb-3">
+              <label for="nomeInput" class="form-label">Nome</label>
+              <input type="text" class="form-control" id="nomeInput" required>
+            </div>
+            <div class="mb-3">
+              <label for="emailInput" class="form-label">Email</label>
+              <input type="email" class="form-control" id="emailInput" required>
+            </div>
+            <div class="mb-3">
+              <label for="senhaInput" class="form-label">Senha</label>
+              <input type="password" class="form-control" id="senhaInput" required>
+            </div>
+            <div class="mb-3">
+              <label for="papelInput" class="form-label">Papel</label>
+              <select class="form-control" id="papelInput" required>
+                <option value="">Selecione...</option>
+                <option value="ADMIN_CENTRAL">Admin Central</option>
+                <option value="ADMIN_EMPRESA">Admin Empresa</option>
+                <option value="FUNCIONARIO">Funcionário</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="salvarUsuarioBtn">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 VAR - Plataforma de Monitoramento | KG KITUXI TECH</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    async function loadUsuarios() {
+      try {
+        const data = await usuarios.listar();
+        const tbody = document.querySelector('#usuariosTable tbody');
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Nenhum usuário</td></tr>';
+          return;
+        }
+
+        data.forEach(usuario => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${usuario.nome || 'N/A'}</td>
+              <td>${usuario.email}</td>
+              <td><span class="badge bg-info">${usuario.papel}</span></td>
+              <td>${usuario.ativo ? '✓' : '✗'}</td>
+              <td>
+                <button class="btn btn-sm btn-warning" onclick="editarUsuario('${usuario.id}')">Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deletarUsuario('${usuario.id}')">Deletar</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        showError(error);
+      }
+    }
+
+    document.getElementById('salvarUsuarioBtn').addEventListener('click', async () => {
+      const nome = document.getElementById('nomeInput').value;
+      const email = document.getElementById('emailInput').value;
+      const senha = document.getElementById('senhaInput').value;
+      const papel = document.getElementById('papelInput').value;
+
+      try {
+        await usuarios.criar({ nome, email, senha, papel });
+        showNotification('Usuário criado com sucesso!', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('usuarioModal')).hide();
+        loadUsuarios();
+      } catch (error) {
+        showError(error);
+      }
+    });
+
+    async function deletarUsuario(id) {
+      if (confirm('Tem certeza que deseja deletar este usuário?')) {
+        try {
+          await usuarios.deletar(id);
+          showNotification('Usuário deletado', 'success');
+          loadUsuarios();
+        } catch (error) {
+          showError(error);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadUsuarios);
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#2669cc" />
+      <stop offset="1" stop-color="#1976d2" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="300" rx="12" fill="url(#g)" opacity="0.08" />
+  <g fill="#2669cc" opacity="0.9">
+    <circle cx="140" cy="150" r="48" />
+    <rect x="320" y="110" width="220" height="120" rx="8" />
+    <rect x="560" y="60" width="160" height="200" rx="8" />
+  </g>
+  <text x="30" y="40" font-family="Segoe UI, Tahoma, Geneva, Verdana, sans-serif" font-size="22" fill="#0d47a1">Bem vindo ao VAR</text>
+</svg>

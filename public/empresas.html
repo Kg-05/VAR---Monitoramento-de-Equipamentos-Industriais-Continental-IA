@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empresas - VAR Monitoramento</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css"> 
+</head>
+<body>
+        <div class="app-shell">
+            <aside class="sidebar">
+                <div class="sidebar-top">
+                    <img src="/images/logo.svg" alt="Kituxi Tech" class="sidebar-logo">
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="/index.html" class="sidebar-item">Dashboard</a>
+                    <a href="/cadastrar-empresa.html" class="sidebar-item">Cadastrar empresa</a>
+                    <a href="/empresas.html" class="sidebar-item active">Gerir empresas</a>
+                    <a href="#" class="sidebar-item">Gestão payments</a>
+                    <a href="#" class="sidebar-item">Documentos</a>
+                    <a href="#" class="sidebar-item">Definições</a>
+                    <a href="#" class="sidebar-item">Sair</a>
+                </nav>
+            </aside>
+
+            <main class="content">
+                <header class="content-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="page-title">Gerir empresas</h2>
+                        <div class="search-wrapper mt-2">
+                            <input type="search" id="empresaSearch" class="form-control search-input" placeholder="pesquisar...">
+                        </div>
+                    </div>
+                    <div class="header-actions d-flex align-items-center">
+                        <button class="btn btn-outline-light me-3">📅 24 agosto 2025</button>
+                        <div class="profile d-flex align-items-center">
+                            <div class="avatar"></div>
+                            <div class="ms-2 text-white">Estefânio martins</div>
+                        </div>
+                    </div>
+                </header>
+
+                <section class="panel panel-dark">
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark-custom" id="empresasTable">
+                                <thead>
+                                    <tr>
+                                        <th>N°</th>
+                                        <th>Designação social</th>
+                                        <th>NIF</th>
+                                        <th>Contactos</th>
+                                        <th>Objecto social</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="6" class="text-center text-muted">Carregando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+    <div class="modal fade" id="empresaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Empresa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="empresaForm">
+                        <div class="mb-3">
+                            <label for="nomeEmpresa" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="nomeEmpresa" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nifEmpresa" class="form-label">NIF</label>
+                            <input type="text" class="form-control" id="nifEmpresa">
+                        </div>
+                        <div class="mb-3">
+                            <label for="emailEmpresa" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="emailEmpresa">
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefoneEmpresa" class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="telefoneEmpresa">
+                        </div>
+                        <div class="mb-3">
+                            <label for="enderecoEmpresa" class="form-label">Endereço</label>
+                            <input type="text" class="form-control" id="enderecoEmpresa">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarEmpresaBtn">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 VAR - Plataforma de Monitoramento | KG KITUXI TECH</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+    
+        <script>
+            // Gerenciamento de empresas com cache local e busca
+            let empresasCache = [];
+
+            async function loadEmpresas() {
+                try {
+                    const data = await empresas.listar();
+                    empresasCache = data || [];
+                    renderEmpresas(empresasCache);
+                } catch (error) {
+                    showError(error);
+                }
+            }
+
+            function renderEmpresas(list) {
+                const tbody = document.querySelector('#empresasTable tbody');
+                tbody.innerHTML = '';
+
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhuma empresa</td></tr>';
+                    return;
+                }
+
+                list.forEach((empresa, idx) => {
+                    const contatos = empresa.contacto || empresa.telefone || 'N/A';
+                    const objecto = empresa.objectoSocial || empresa.objecto || empresa.descricao || 'N/A';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${empresa.nome}</td>
+                            <td>${empresa.nif || 'N/A'}</td>
+                            <td>${contatos.startsWith('+') ? `<a href=\"tel:${contatos}\" class=\"text-decoration-none text-info\">${contatos}</a>` : `<a href=\"tel:${contatos}\" class=\"text-decoration-none text-info\">${contatos}</a>`}</td>
+                            <td>${objecto}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light me-2" onclick="editarEmpresa('${empresa.id}')">✎</button>
+                                <button class="btn btn-sm action-delete" onclick="deletarEmpresa('${empresa.id}')">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('salvarEmpresaBtn').addEventListener('click', async () => {
+                const nome = document.getElementById('nomeEmpresa').value;
+                const nif = document.getElementById('nifEmpresa').value;
+                const email = document.getElementById('emailEmpresa').value;
+                const contacto = document.getElementById('telefoneEmpresa').value;
+                const endereco = document.getElementById('enderecoEmpresa').value;
+
+                try {
+                    await empresas.criar({ nome, nif, email, contacto, endereco });
+                    showNotification('Empresa criada com sucesso!', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('empresaModal')).hide();
+                    loadEmpresas();
+                } catch (error) {
+                    showError(error);
+                }
+            });
+
+            async function deletarEmpresa(id) {
+                if (!confirm('Tem certeza que deseja apagar esta empresa?')) return;
+                try {
+                    await empresas.deletar(id);
+                    showNotification('Empresa deletada', 'success');
+                    loadEmpresas();
+                } catch (error) {
+                    showError(error);
+                }
+            }
+
+            function editarEmpresa(id) {
+                // Placeholder: buscar dados e abrir modal para edição
+                const found = empresasCache.find(e => e.id === id);
+                if (!found) return showNotification('Empresa não encontrada', 'warning');
+
+                document.getElementById('nomeEmpresa').value = found.nome || '';
+                document.getElementById('nifEmpresa').value = found.nif || '';
+                document.getElementById('emailEmpresa').value = found.email || '';
+                document.getElementById('telefoneEmpresa').value = found.contacto || '';
+                document.getElementById('enderecoEmpresa').value = found.endereco || '';
+
+                const modalEl = document.getElementById('empresaModal');
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+
+                // on save, we could call empresas.atualizar(found.id, {...}) — left as future improvement
+            }
+
+            // Busca local
+            document.getElementById('empresaSearch').addEventListener('input', (e) => {
+                const q = e.target.value.toLowerCase().trim();
+                if (!q) return renderEmpresas(empresasCache);
+                const filtered = empresasCache.filter(it => (it.nome || '').toLowerCase().includes(q) || (it.nif || '').toLowerCase().includes(q) || (it.contacto || '').toLowerCase().includes(q));
+                renderEmpresas(filtered);
+            });
+
+            document.addEventListener('DOMContentLoaded', loadEmpresas);
+        </script>
+</body>
+</html>
