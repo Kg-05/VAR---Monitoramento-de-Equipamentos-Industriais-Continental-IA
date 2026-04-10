@@ -1,279 +1,264 @@
-# VAR---Monitoramento-de-Euipamentos-Continental-IA
+# Industrial Monitoring API
 
-## 📌 VAR – Plataforma de Monitoramento Inteligente
+API REST para monitoramento de equipamentos industriais com gestão multi-tenant de empresas, licenças e alertas.
 
-## O VAR-CONTINENTAL-IA é uma plataforma multifacetada desenvolvida pela KG KITUXI TECH em 2025
+## Stack
 
-A solução faz uso de inteligência artificial aplicada ao reconhecimento, detecção e leitura de imagens.
-
-Na sua essência, o VAR integra tecnologias de aprendizado de máquina com o objetivo de automatizar a análise visual e apoiar a tomada de decisões de forma eficiente e confiável.
-
-## A plataforma foi projetada para
-
-- Melhorar a segurança operacional
-
-- Reforçar o controlo de acessos
-
-- Garantir o registo sistemático de eventos
-
-- Potenciar o monitoramento visual automático em diferentes cenários
-
-Com essas capacidades, o VAR torna-se uma solução inovadora, adaptável e estratégica para organizações que buscam elevar os padrões de segurança, eficiência e inteligência operacional.
-
-## 🚀 Tecnologias Utilizadas
-
-- Node.js + Express → Backend da aplicação
-
-- TypeScript → Tipagem estática e maior robustez
-
-- Prisma ORM → Camada de acesso ao banco de dados
-
-- PostgreSQL → Banco de dados relacional
-
-- JWT (JSON Web Token) → Autenticação segura
-
-- Bcrypt → Criptografia de senhas
-
-- Middleware de Logs → Registo automático das ações dos usuários
-
-- Cors & Dotenv → Configuração de segurança e variáveis de ambiente
-
-## ⚙️ Instalação e Configuração
-
-Clonar o repositório
-
-git clone `https://github.com/seu-usuario/var-plataforma.git`
-cd var-plataforma
+- **Runtime**: Node.js + TypeScript
+- **Framework**: Express
+- **ORM**: Prisma
+- **Banco**: PostgreSQL
+- **Validação**: Zod
+- **Auth**: JWT (jsonwebtoken)
+- **Testes**: Vitest + Supertest
 
 ---
 
-## Instalar dependências
+## Estrutura de pastas
 
-`npm install`
-
----
-
-## Configurar o arquivo .env
-
-DATABASE_URL="postgresql://usuario:senha@localhost:5432/var_db"
-JWT_SECRET="sua_chave_secreta"
-PORT=4000
-
----
-
-## Rodar as migrações
-
-`npx prisma migrate dev`
-
----
-
-## Executar os seeds
-
-`npx ts-node prisma/seed.ts`
-`npx ts-node prisma/seed-admin.ts` (prioridade neste seed)
-
----
-
-## Rodar o servidor
-
-`npm run dev`
+```
+src/
+├── modules/
+│   ├── auth/           # Login e geração de token JWT
+│   ├── empresa/        # CRUD de empresas (ADM)
+│   ├── usuario/        # CRUD de usuários por papel
+│   ├── funcionario/    # Funcionários com limite por licença
+│   ├── equipamento/    # Equipamentos com alertas automáticos
+│   ├── alerta/         # Alertas com filtragem multi-tenant
+│   ├── licenca/        # Licenças com status calculado
+│   ├── pagamento/      # Pagamentos com activação de licença
+│   ├── log/            # Auditoria de acções (só ADM)
+│   └── relatorio/      # Relatórios agregados
+├── shared/
+│   ├── database/       # Singleton PrismaClient
+│   ├── errors/         # AppError e erros HTTP
+│   ├── middlewares/    # auth, roles, tenant, validate, logger, error
+│   ├── types/          # Enums e extensão do Express Request
+│   └── utils/          # Paginação, resposta, data, hash
+├── app.ts              # Configuração do Express
+└── server.ts           # Entrada da aplicação
+prisma/
+├── schema.prisma       # Schema completo do banco
+└── seed.ts             # Dados iniciais
+```
 
 ---
 
-## 📌 Endpoints Principais
+## Instalação e execução
 
-### Autenticação
+### 1. Clonar e instalar dependências
 
-- POST /auth/login → Login de usuário (retorna token JWT)
+```bash
+npm install
+```
 
-- Usuários
+### 2. Configurar variáveis de ambiente
 
-- GET /usuarios → Listar usuários (restrito conforme role)
+```bash
+cp .env.example .env
+# edite .env com sua DATABASE_URL e JWT_SECRET
+```
 
-- POST /usuarios → Criar usuário (Admin Central/Admin Empresa)
+### 3. Criar o banco e aplicar migrations
 
----
+```bash
+npx prisma migrate dev --name init
+```
 
-### Empresas
+### 4. Popular com dados de exemplo
 
-- GET /empresas → Listar empresas (Admin Central)
+```bash
+npm run db:seed
+```
 
-- POST /empresas → Criar empresa (Admin Central)
+### 5. Iniciar em modo desenvolvimento
 
----
+```bash
+npm run dev
+```
 
-### Equipamentos / Dispositivos
-
-- CRUD completo com permissões por nível de usuário
-
-- Avarias / Alertas
-
-- Registro e listagem, com geração automática de logs
-
----
-
-## 🛡️ Permissões de Usuário
-
-### ADMIN_CENTRAL
-
-Gestão global de usuários, empresas, avarias, alertas, equipamentos, notificações, licenças, pagamentos e logs.
-
-### ADMIN_EMPRESA
-
-Gestão dos funcionários da sua empresa, equipamentos, avarias, alertas e informações da licença.
-
-### FUNCIONARIO
-
-Visualização dos equipamentos, envio e recebimento de alertas/notificações.
-
-### 📊 Logs
-
-Cada ação executada pelos usuários (criação, atualização, remoção, login, etc.) é registrada automaticamente no modelo Log.
-Isso garante rastreabilidade e auditoria dentro da plataforma.
+A API estará disponível em `http://localhost:3333/api/v1`
 
 ---
 
-## 🤝 Contribuição
+## Papéis e permissões
 
-Faça um fork do projeto
-
-Crie uma branch para a sua feature (git checkout -b feature/nome-feature)
-
-Commit suas alterações (git commit -m 'feat: adiciona nova feature')
-
-Envie para o repositório remoto (git push origin feature/nome-feature)
-
-Abra um Pull Request
-
-## 📜 Licença
-
-Este projeto é de uso interno da KG KITUXI TECH e ainda não possui uma licença pública definida.
+| Papel        | Acesso                                                      |
+|--------------|-------------------------------------------------------------|
+| ADM          | Acesso total — todas as rotas                               |
+| Operacional  | Gere clientes, licenças, pagamentos e relatórios            |
+| Cliente      | Gere apenas dados da sua própria empresa (multi-tenant)     |
 
 ---
 
-## 🧪 Exemplos de Requisições (Postman / HTTP)
+## Autenticação
 
-🔑 Autenticação
+Todas as rotas (excepto `/auth/login` e `/health`) requerem o header:
+
+```
+Authorization: Bearer <token>
+```
 
 ### Login
 
-POST <http://localhost:4000/auth/login>
+```http
+POST /api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "<admin@kgtech.com>",
-  "senha": "123456"
+  "email": "adm@sistema.ao",
+  "senha": "Admin@123"
 }
+```
 
-✔️ Resposta esperada:
+**Credenciais do seed:**
 
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR..."
-}
-
-### 👤 Usuários
-
-- Listar Usuários (ADMIN_CENTRAL)
-
--- GET <http://localhost:4000/usuarios>
-Authorization: Bearer {{TOKEN_ADMIN_CENTRAL}}
-
-- Criar Usuário (ADMIN_EMPRESA ou ADMIN_CENTRAL)
-
--- POST <http://localhost:4000/usuarios>
-Content-Type: application/json
-Authorization: Bearer {{TOKEN_ADMIN_EMPRESA}}
-
-{
-  "nome": "Carlos Silva",
-  "email": "<carlos@empresa.com>",
-  "senha": "123456",
-  "papel": "FUNCIONARIO",
-  "empresaId": "empresa-uuid"
-}
-
-### 🏢 Empresas
-
-- Listar Empresas (ADMIN_CENTRAL)
-
--- GET <http://localhost:4000/empresas>
-Authorization: Bearer {{TOKEN_ADMIN_CENTRAL}}
-
-- Criar Empresa (ADMIN_CENTRAL)
-
--- POST <http://localhost:4000/empresas>
-Content-Type: application/json
-Authorization: Bearer {{TOKEN_ADMIN_CENTRAL}}
-
-{
-  "nome": "Empresa XPTO",
-  "nif": "123456789",
-  "endereco": "Rua Principal 100, Luanda",
-  "email": "<contato@empresa.com>",
-  "telefone": "+244900000000"
-}
-
-### ⚙️ Equipamentos
-
-- Criar Equipamento (ADMIN_EMPRESA)
-
--- POST <http://localhost:4000/equipamentos>
-Content-Type: application/json
-Authorization: Bearer {{TOKEN_ADMIN_EMPRESA}}
-
-{
-  "empresaId": "empresa-uuid",
-  "nome": "Câmera 1",
-  "localizacao": "Portaria",
-  "descricao": "Câmera de vigilância"
-}
-
-### 🎥 Dispositivos
-
-- Listar Dispositivos (FUNCIONARIO)
-
--- GET <http://localhost:4000/dispositivos?equipamentoId=uuid-equipamento>
-Authorization: Bearer {{TOKEN_FUNCIONARIO}}
-
-### 🚨 Alertas
-
-- Criar Alerta (ADMIN_EMPRESA)
-
--- POST <http://localhost:4000/alertas>
-Content-Type: application/json
-Authorization: Bearer {{TOKEN_ADMIN_EMPRESA}}
-
-{
-  "avariaId": "uuid-avaria",
-  "empresaId": "uuid-empresa",
-  "mensagem": "Falha na câmera da portaria",
-  "severidade": "ALTA"
-}
-
-### Reconhecer Alerta (FUNCIONARIO)
-
-POST <http://localhost:4000/alertas/uuid-alerta/reconhecer>
-Content-Type: application/json
-Authorization: Bearer {{TOKEN_FUNCIONARIO}}
-
-{
-  "usuarioId": "uuid-funcionario"
-}
-
-### 📜 Logs
-
-Listar Logs (ADMIN_CENTRAL)
-
-GET <http://localhost:4000/logs>
-Authorization: Bearer {{TOKEN_ADMIN_CENTRAL}}
+| Papel       | Email                              | Senha         |
+|-------------|------------------------------------|---------------|
+| ADM         | adm@sistema.ao                     | Admin@123     |
+| Operacional | operacional@sistema.ao             | Oper@123      |
+| Cliente A   | gestor@sonangol-refinaria.ao       | Cliente@123   |
+| Cliente B   | gestor@taag-manutencao.ao          | Cliente@123   |
+| Cliente C   | gestor@endiama-proc.ao             | Cliente@123   |
 
 ---
 
-⚡ Observação:
+## Rotas principais
 
-Sempre substitua {{TOKEN_...}} pelo token JWT obtido no login.
+### Empresas
+```
+GET    /api/v1/empresas
+POST   /api/v1/empresas
+GET    /api/v1/empresas/:id
+PATCH  /api/v1/empresas/:id
+DELETE /api/v1/empresas/:id
+```
 
-Os uuid devem ser substituídos pelos IDs reais gerados no banco.
+### Usuários
+```
+GET    /api/v1/usuarios
+POST   /api/v1/usuarios
+GET    /api/v1/usuarios/:id
+PATCH  /api/v1/usuarios/:id
+DELETE /api/v1/usuarios/:id
+```
 
-API para gestão de empresas, usuários, equipamentos, dispositivos, avarias, alertas, licenças, pagamentos e logs.  
-Desenvolvida em **Node.js + Express + Prisma + TypeScript** com autenticação JWT e controle de permissões por papéis de usuário
+### Funcionários
+```
+GET    /api/v1/funcionarios
+POST   /api/v1/funcionarios
+GET    /api/v1/funcionarios/:id
+PATCH  /api/v1/funcionarios/:id
+DELETE /api/v1/funcionarios/:id
+```
+
+### Equipamentos
+```
+GET    /api/v1/equipamentos
+POST   /api/v1/equipamentos
+GET    /api/v1/equipamentos/:id
+PATCH  /api/v1/equipamentos/:id
+DELETE /api/v1/equipamentos/:id
+```
+
+### Alertas
+```
+GET    /api/v1/alertas
+POST   /api/v1/alertas
+GET    /api/v1/alertas/resumo
+GET    /api/v1/alertas/nao-lidos
+GET    /api/v1/alertas/:id
+PATCH  /api/v1/alertas/:id/ler
+DELETE /api/v1/alertas/:id
+```
+
+### Licenças
+```
+GET    /api/v1/licencas
+POST   /api/v1/licencas
+GET    /api/v1/licencas/:id
+PATCH  /api/v1/licencas/:id
+```
+
+### Pagamentos
+```
+GET    /api/v1/pagamentos
+POST   /api/v1/pagamentos
+GET    /api/v1/pagamentos/:id
+PATCH  /api/v1/pagamentos/:id
+```
+
+### Logs (ADM apenas)
+```
+GET    /api/v1/logs
+```
+
+### Relatórios
+```
+GET    /api/v1/relatorios/alertas
+GET    /api/v1/relatorios/financeiro
+GET    /api/v1/relatorios/licencas
+```
+
+---
+
+## Paginação
+
+Todas as rotas de listagem aceitam:
+
+```
+?page=1&limit=20
+```
+
+Resposta paginada:
+```json
+{
+  "success": true,
+  "data": [...],
+  "meta": {
+    "total": 100,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 5
+  }
+}
+```
+
+---
+
+## Scripts disponíveis
+
+```bash
+npm run dev          # Desenvolvimento com hot-reload
+npm run build        # Compilar para /dist
+npm run start        # Iniciar build de produção
+npm run db:migrate   # Aplicar migrations
+npm run db:seed      # Popular banco com dados de teste
+npm run db:studio    # Abrir Prisma Studio
+npm run db:reset     # Resetar banco + seed
+npm run test         # Executar testes
+npm run lint         # Verificar tipos TypeScript
+```
+
+---
+
+## Padrão de resposta
+
+**Sucesso:**
+```json
+{ "success": true, "data": { ... } }
+```
+
+**Erro:**
+```json
+{ "success": false, "message": "Descrição do erro" }
+```
+
+**Validação:**
+```json
+{
+  "success": false,
+  "message": "Dados inválidos",
+  "errors": { "campo": ["mensagem de erro"] }
+}
+```

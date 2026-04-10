@@ -1,14 +1,20 @@
 {
-    "compilerOptions": {
-      "target": "ES2020",
-      "module": "commonjs",
-      "rootDir": "./",
-      "outDir": "./dist",
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true
-    },
-    "include": ["src", "prisma/seed.ts"],
-    "exclude": ["node_modules", "dist"]
-  }
+  "compilerOptions": {
+    "target":            "ES2022",
+    "module":            "CommonJS",
+    "lib":               ["ES2022"],
+    "rootDir":           "./src",
+    "outDir":            "./dist",
+    "strict":            true,
+    "esModuleInterop":   true,
+    "resolveJsonModule": true,
+    "skipLibCheck":      true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl":           ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

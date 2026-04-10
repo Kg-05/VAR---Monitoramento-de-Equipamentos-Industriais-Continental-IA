@@ -1,7 +1,13 @@
-import app from "./app";
+import { app } from './app'
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT ?? 3333
 
-app.listen(PORT, () => 
-  console.log(`Servidor rodando em http://localhost:${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`
+  
+     VAR API              
+     Servidor rodando na porta ${PORT}      
+     http://localhost:${PORT}/api/v1        
+     http://localhost:${PORT}/health
+  `)
+})

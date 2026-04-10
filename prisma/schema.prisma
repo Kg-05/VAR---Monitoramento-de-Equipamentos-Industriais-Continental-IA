@@ -1,3 +1,9 @@
+// =============================================================
+// schema.prisma — Sistema de Monitoramento de Equipamentos
+// Gerador: Prisma Client (Node.js + TypeScript)
+// Banco:   PostgreSQL
+// =============================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,183 +13,286 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =============================================================
+// ENUMS
+// =============================================================
+
 enum Papel {
-  ADMIN_CENTRAL
-  ADMIN_EMPRESA
-  FUNCIONARIO
+  ADM
+  Operacional
+  Cliente
 }
 
-enum StatusLicenca { 
-  ATIVA 
-  EXPIRADA 
-  PENDENTE 
-  SUSPENSA 
+enum StatusUsuario {
+  Ativo
+  Inativo
 }
 
-enum TipoLicenca {
-  BASICO
-  EMPRESARIAL
-  PREMIUM
+enum StatusFuncionario {
+  Ativo
+  Inativo
+  Pendente
 }
 
-enum StatusPagamento { 
-  PENDENTE 
-  CONCLUIDO 
-  FALHOU 
-  REEMBOLSADO 
+enum StatusEquipamento {
+  Operacional
+  Manutencao
 }
 
-enum StatusEquipamento { 
-    OPERACIONAL
-    MANUTENCAO
+enum NivelAlerta {
+  razoavel
+  medio
+  critico
 }
 
-enum SeveridadeAlerta { 
-    BAIXO
-    MEDIO
-    ALTO
+enum PlanoLicenca {
+  Basico
+  Profissional
+  Premium
 }
+
+enum StatusLicenca {
+  Ativa
+  Expirada
+  Suspensa
+}
+
+enum StatusPagamento {
+  Pendente
+  Concluido
+  Reembolsado
+}
+
+// =============================================================
+// EMPRESA
+// Entidade central do sistema. Todas as outras entidades
+// pertencem a uma empresa (multi-tenancy por empresaId).
+// =============================================================
 
 model Empresa {
-  id            String     @id @default(uuid())
-  nome          String
-  nif           String?
-  endereco      String?
-  contacto      String?
-  email         String?    @unique
-  criadoEm      DateTime   @default(now())
-  atualizadoEm  DateTime   @updatedAt
-  usuarios      Usuario[]
-  licencas      Licenca[]
-  equipamentos  Equipamento[]
-  pagamentos    Pagamento[]
-  logs          Log[]
+  id        String   @id @default(uuid())
+  nome      String
+  cnpj      String   @unique
+  email     String   @unique
+  telefone  String?
+  status    StatusUsuario @default(Ativo)
+  criadoEm  DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  Alerta Alerta[]
+  // Relações
+  usuarios     Usuario[]
+  funcionarios Funcionario[]
+  equipamentos Equipamento[]
+  alertas      Alerta[]
+  licencas     Licenca[]
+  pagamentos   Pagamento[]
+  logs         Log[]
+
+  @@map("empresas")
 }
+
+// =============================================================
+// USUARIO
+// Representa as contas de acesso ao sistema.
+// ADM e Operacional não precisam de empresaId, mas
+// Clientes obrigatoriamente pertencem a uma empresa.
+// =============================================================
 
 model Usuario {
-  id            String     @id @default(uuid())
-  email         String
-  senhaHash     String
-  nome          String?
-  papel         Papel      @default(FUNCIONARIO)
-  empresaId     String?
-  ativo         Boolean    @default(true)
-  criadoEm      DateTime   @default(now())
-  atualizadoEm  DateTime   @updatedAt
-  empresa       Empresa?   @relation(fields: [empresaId], references: [id])
-  alertasLidos  Alerta[]   @relation("LidosPor")
-  avarias       Avaria[]   
-  @@index([email])
-  Avaria Avaria[] @relation("LidosPor")
-  Alerta Alerta[]
-  Log Log[]
+  id        String        @id @default(uuid())
+  email     String        @unique
+  nome      String
+  senhaHash String
+  papel     Papel
+  status    StatusUsuario @default(Ativo)
+  criadoEm  DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // FK opcional: ADM e Operacional não têm empresa
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  // Relações
+  logs          Log[]
+  alertasLidos  Alerta[] @relation("AlertaLidoPor")
+
+  @@index([empresaId])
+  @@index([papel])
+  @@map("usuarios")
 }
 
-model Licenca {
-  id            String        @id @default(uuid())
-  empresaId     String
-  plano         TipoLicenca   @default(BASICO)
-  status        StatusLicenca @default(PENDENTE)
-  maxFuncionarios Int        @default(2)
-  inicioEm      DateTime?
-  expiraEm      DateTime?
-  criadoEm      DateTime      @default(now())
-  atualizadoEm  DateTime      @updatedAt
-  empresa       Empresa       @relation(fields: [empresaId], references: [id])
-  pagamentos    Pagamento[]
+// =============================================================
+// FUNCIONARIO
+// Funcionários cadastrados por empresas Cliente.
+// Limitados pelo maxDeFuncionarios da licença ativa.
+// =============================================================
+
+model Funcionario {
+  id        String            @id @default(uuid())
+  nome      String
+  email     String
+  cargo     String
+  telefone  String?
+  status    StatusFuncionario @default(Pendente)
+  criadoEm  DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([email, empresaId])
+  @@index([empresaId])
+  @@index([status])
+  @@map("funcionarios")
 }
 
-model Pagamento {
-  id            String          @id @default(uuid())
-  empresaId     String
-  licencaId     String?
-  valor         Float
-  moeda         String          @default("AOA")
-  status        StatusPagamento @default(PENDENTE)
-  referenciaProvedor String?
-  criadoEm      DateTime        @default(now())
-  atualizadoEm  DateTime        @updatedAt
-  empresa       Empresa         @relation(fields: [empresaId], references: [id])
-  licenca       Licenca?        @relation(fields: [licencaId], references: [id])
-}
+// =============================================================
+// EQUIPAMENTO
+// Equipamentos industriais monitorados.
+// Um equipamento pertence a uma empresa e pode gerar alertas.
+// =============================================================
 
 model Equipamento {
-  id            String            @id @default(uuid())
-  empresaId     String
-  nome          String
-  modelo        String?
-  numeroSerie   String?           @unique
-  localizacao   String?
-  status        StatusEquipamento @default(OPERACIONAL)
-  criadoEm      DateTime          @default(now())
-  atualizadoEm  DateTime          @updatedAt
-  empresa       Empresa           @relation(fields: [empresaId], references: [id])
-  dispositivos  Dispositivo[]
-  avarias       Avaria[]
+  id           String            @id @default(uuid())
+  nome         String
+  modelo       String
+  fabricante   String?
+  numeroSerie  String?
+  localizacao  String
+  status       StatusEquipamento @default(Operacional)
+  criadoEm     DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  // Relações
+  alertas Alerta[]
+
+  @@unique([numeroSerie, empresaId])
+  @@index([empresaId])
+  @@index([status])
+  @@map("equipamentos")
 }
 
-model Dispositivo {
-  id            String    @id @default(uuid())
-  equipamentoId String
-  nome          String
-  tipo          String?
-  rtspUrl       String?
-  ativo         Boolean   @default(true)
-  criadoEm      DateTime  @default(now())
-  atualizadoEm  DateTime  @updatedAt
-  equipamento   Equipamento @relation(fields: [equipamentoId], references: [id])
-  avarias       Avaria[]
-}
-
-model Avaria {
-  id            String          @id @default(uuid())
-  equipamentoId String
-  dispositivoId String?
-  detectadoPor  String?
-  descricao     String?
-  confianca     Float?
-  severidade    SeveridadeAlerta
-  imagemUrl     String?
-  criadoEm      DateTime        @default(now())
-  resolvido     Boolean         @default(false)
-  resolvidoEm   DateTime?
-  resolvidoPorId String?
-  equipamento   Equipamento     @relation(fields: [equipamentoId], references: [id])
-  dispositivo   Dispositivo?    @relation(fields: [dispositivoId], references: [id])
-  resolvidoPor  Usuario?        @relation("LidosPor", fields: [resolvidoPorId], references: [id])
-  alertas       Alerta[]
-
-  Usuario Usuario[]
-}
+// =============================================================
+// ALERTA
+// Falhas e anomalias detectadas nos equipamentos.
+// Vinculado a um equipamento específico (equipamentoId).
+// Rastreia quem leu e quando.
+// =============================================================
 
 model Alerta {
-  id            String          @id @default(uuid())
-  avariaId      String
-  empresaId     String
-  criadoEm      DateTime        @default(now())
-  lidoPorId     String?
-  lidoEm        DateTime?
-  mensagem      String?
-  severidade    SeveridadeAlerta 
-  reconhecido   Boolean         @default(false)
-  reconhecidoEm DateTime?
-  avaria        Avaria          @relation(fields: [avariaId], references: [id])
-  empresa       Empresa         @relation(fields: [empresaId], references: [id])
-  lidoPor       Usuario?        @relation(fields: [lidoPorId], references: [id])
+  id        String      @id @default(uuid())
+  descricao String
+  nivel     NivelAlerta
+  lidoEm   DateTime?
+  criadoEm  DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
-  Usuario Usuario[] @relation("LidosPor")
+  empresaId    String
+  empresa      Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  equipamentoId String
+  equipamento   Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade)
+
+  // Quem marcou como lido (opcional — null = não lido)
+  lidoPorId String?
+  lidoPor   Usuario? @relation("AlertaLidoPor", fields: [lidoPorId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId])
+  @@index([equipamentoId])
+  @@index([nivel])
+  @@index([lidoPorId])
+  @@index([criadoEm])
+  @@map("alertas")
 }
 
+// =============================================================
+// LOG
+// Auditoria de todas as ações realizadas por usuários.
+// Gerado automaticamente pelo logger.middleware.ts.
+// =============================================================
+
 model Log {
-  id            String     @id @default(uuid())
-  empresaId     String?
-  usuarioId     String?
-  nivel         String
-  acao          String
-  dados         Json?
-  criadoEm      DateTime   @default(now())
-  empresa       Empresa?   @relation(fields: [empresaId], references: [id])
-  usuario       Usuario?   @relation(fields: [usuarioId], references: [id])
+  id           String   @id @default(uuid())
+  acao         String   // ex: "GET /api/v1/equipamentos"
+  nivelUsuario Papel
+  ip           String?
+  userAgent    String?
+  statusHttp   Int?     // código HTTP da resposta
+  criadoEm     DateTime @default(now())
+
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  // Log pode estar vinculado a uma empresa para filtragem
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId])
+  @@index([empresaId])
+  @@index([criadoEm])
+  @@index([nivelUsuario])
+  @@map("logs")
+}
+
+// =============================================================
+// LICENCA
+// Controla o plano contratado por cada empresa.
+// O status é calculado em runtime via calcularStatusLicenca()
+// com base em expiraEm — não armazenado manualmente.
+// O campo status no banco é usado apenas para Suspensa (ação manual).
+// =============================================================
+
+model Licenca {
+  id               String       @id @default(uuid())
+  plano            PlanoLicenca
+  status           StatusLicenca @default(Ativa)
+  maxDeFuncionarios Int
+  inicioEm         DateTime
+  expiraEm         DateTime
+  observacoes      String?
+  criadoEm         DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  // Relações
+  pagamentos Pagamento[]
+
+  @@index([empresaId])
+  @@index([status])
+  @@index([expiraEm])
+  @@map("licencas")
+}
+
+// =============================================================
+// PAGAMENTO
+// Registro financeiro de cada pagamento de licença.
+// Ao concluir um pagamento, o service verifica se deve
+// ativar ou renovar a licença vinculada.
+// =============================================================
+
+model Pagamento {
+  id         String          @id @default(uuid())
+  valor      Decimal         @db.Decimal(10, 2)
+  moeda      String          @default("AOA")
+  status     StatusPagamento @default(Pendente)
+  referencia String?         // referência externa (ex: ID do gateway)
+  criadoEm  DateTime         @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  licencaId String
+  licenca   Licenca @relation(fields: [licencaId], references: [id], onDelete: Restrict)
+
+  @@index([empresaId])
+  @@index([licencaId])
+  @@index([status])
+  @@index([criadoEm])
+  @@map("pagamentos")
 }
