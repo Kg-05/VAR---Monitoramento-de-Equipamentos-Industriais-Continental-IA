@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { prisma } from '../prisma/client';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import { AuthRequest } from '@/shared/middlewares/auth.middleware';
+import { prisma } from '@/shared/database/prisma.client';
 
 export const listarFormasPagamento = async (_req: AuthRequest, res: Response) => {
   try {

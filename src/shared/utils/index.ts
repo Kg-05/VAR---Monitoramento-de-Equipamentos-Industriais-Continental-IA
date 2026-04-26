@@ -1,82 +1,82 @@
-// =============================================================
-// Paginação
-// =============================================================
-export interface PaginationParams {
-  page:  number
-  limit: number
-  skip:  number
-  take:  number
-}
+// // =============================================================
+// // Paginação
+// // =============================================================
+// export interface PaginationParams {
+//   page:  number
+//   limit: number
+//   skip:  number
+//   take:  number
+// }
 
-export interface PaginatedResult<T> {
-  data: T[]
-  meta: {
-    total:      number
-    page:       number
-    limit:      number
-    totalPages: number
-  }
-}
+// export interface PaginatedResult<T> {
+//   data: T[]
+//   meta: {
+//     total:      number
+//     page:       number
+//     limit:      number
+//     totalPages: number
+//   }
+// }
 
-export function parsePagination(query: Record<string, unknown>): PaginationParams {
-  const page  = Math.max(1, parseInt(String(query.page  ?? 1)))
-  const limit = Math.min(100, Math.max(1, parseInt(String(query.limit ?? 20))))
-  return { page, limit, skip: (page - 1) * limit, take: limit }
-}
+// export function parsePagination(query: Record<string, unknown>): PaginationParams {
+//   const page  = Math.max(1, parseInt(String(query.page  ?? 1)))
+//   const limit = Math.min(100, Math.max(1, parseInt(String(query.limit ?? 20))))
+//   return { page, limit, skip: (page - 1) * limit, take: limit }
+// }
 
-export function paginar<T>(data: T[], total: number, params: PaginationParams): PaginatedResult<T> {
-  return {
-    data,
-    meta: {
-      total,
-      page:       params.page,
-      limit:      params.limit,
-      totalPages: Math.ceil(total / params.limit),
-    },
-  }
-}
+// export function paginar<T>(data: T[], total: number, params: PaginationParams): PaginatedResult<T> {
+//   return {
+//     data,
+//     meta: {
+//       total,
+//       page:       params.page,
+//       limit:      params.limit,
+//       totalPages: Math.ceil(total / params.limit),
+//     },
+//   }
+// }
 
-// =============================================================
-// Data / Licença
-// =============================================================
-import { StatusLicenca } from '@prisma/client'
+// // =============================================================
+// // Data / Licença
+// // =============================================================
+// import { StatusLicenca } from '@prisma/client'
 
-export function calcularStatusLicenca(expiraEm: Date, statusManual: StatusLicenca): StatusLicenca {
-  if (statusManual === StatusLicenca.Suspensa) return StatusLicenca.Suspensa
-  return new Date() > expiraEm ? StatusLicenca.Expirada : StatusLicenca.Ativa
-}
+// export function calcularStatusLicenca(expiraEm: Date, statusManual: StatusLicenca): StatusLicenca {
+//   if (statusManual === StatusLicenca.Suspensa) return StatusLicenca.Suspensa
+//   return new Date() > expiraEm ? StatusLicenca.Expirada : StatusLicenca.Ativa
+// }
 
-export function diasParaExpirar(expiraEm: Date): number {
-  const diff = expiraEm.getTime() - new Date().getTime()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
-}
+// export function diasParaExpirar(expiraEm: Date): number {
+//   const diff = expiraEm.getTime() - new Date().getTime()
+//   return Math.ceil(diff / (1000 * 60 * 60 * 24))
+// }
 
-// =============================================================
-// Hash de senha
-// =============================================================
-import bcrypt from 'bcryptjs'
+// // =============================================================
+// // Hash de senha
+// // =============================================================
+// import bcrypt from 'bcryptjs'
 
-export async function hashSenha(senha: string): Promise<string> {
-  return bcrypt.hash(senha, 10)
-}
+// export async function hashSenha(senha: string): Promise<string> {
+//   return bcrypt.hash(senha, 10)
+// }
 
-export async function verificarSenha(senha: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(senha, hash)
-}
+// export async function verificarSenha(senha: string, hash: string): Promise<boolean> {
+//   return bcrypt.compare(senha, hash)
+// }
 
-// =============================================================
-// Resposta HTTP padronizada
-// =============================================================
-import type { Response } from 'express'
+// // =============================================================
+// // Resposta HTTP padronizada
+// // =============================================================
+// import type { Response } from 'express'
 
-export function success<T>(res: Response, data: T, statusCode = 200) {
-  return res.status(statusCode).json({ success: true, data })
-}
+// export function success<T>(res: Response, data: T, statusCode = 200) {
+//   return res.status(statusCode).json({ success: true, data })
+// }
 
-export function created<T>(res: Response, data: T) {
-  return success(res, data, 201)
-}
+// export function created<T>(res: Response, data: T) {
+//   return success(res, data, 201)
+// }
 
-export function noContent(res: Response) {
-  return res.status(204).send()
-}
+// export function noContent(res: Response) {
+//   return res.status(204).send()
+// }
