@@ -10,6 +10,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:elevate-admin": "tsx prisma/elevate-admin.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force && tsx prisma/seed.ts",
     "test": "vitest",

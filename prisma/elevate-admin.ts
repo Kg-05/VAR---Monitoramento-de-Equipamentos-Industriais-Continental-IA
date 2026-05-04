@@ -20,7 +20,7 @@ async function main() {
 
     const usuarioAtualizado = await prisma.usuario.update({
       where: { id: usuario.id },
-      data: { papel: 'ADMIN_CENTRAL' }
+      data: { papel: 'ADM' }
     });
 
     console.log(`✅ Usuário ${usuarioAtualizado.nome} elevado a ADMIN_CENTRAL com sucesso!`);

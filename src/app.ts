@@ -2,13 +2,18 @@
 // src/app.ts
 // =============================================================
 import express from 'express'
-import { empresaRoutes }    from '@/modules/empresa/empresa'
-import { usuarioRoutes }    from '@/modules/usuario/usuario'
-import { funcionarioRoutes, equipamentoRoutes } from '@/modules/funcionario/funcionario-equipamento'
-import { alertaRoutes }     from '@/modules/alerta/alerta'
-import { licencaRoutes, pagamentoRoutes, logRoutes, relatorioRoutes } from '@/modules/licenca/licenca-pagamento-log-relatorio'
-import { authRoutes }       from '@/modules/auth/auth'
-import { registrarLog, tratarErros } from '@/shared/middlewares/index'
+import { empresaRoutes } from '@/modules/empresa/empresa.routes'
+import { usuarioRoutes } from '@/modules/usuario/usuario.routes'
+import { funcionarioRoutes} from '@/modules/funcionario/funcionario.routes'
+import { equipamentoRoutes  } from '@/modules/equipamento/equipamento.routes';
+import { alertaRoutes } from '@/modules/alerta/alerta.routes'
+import { licencaRoutes } from '@/modules/licenca/licenca.routes'
+import { logRoutes } from '@/modules/log/log.routes'
+import { relatorioRoutes } from '@/modules/relatorio/relatorio.routes'
+import { pagamentoRoutes } from '@/modules/pagamento/pagamento.routes'
+import { authRoutes } from '@/modules/auth/auth.routes'
+import { tratarErros } from '@/shared/middlewares/error.middleware'
+import { registrarLog } from '@/shared/middlewares/logger.middleware'
 
 const app = express()
 
