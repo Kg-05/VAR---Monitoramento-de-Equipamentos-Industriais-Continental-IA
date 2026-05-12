@@ -5,7 +5,14 @@ import { parsePagination, paginar }     from '@/shared/utils/page'
 
 export interface CreateEmpresaDto { nome: string; cnpj: string; email: string; telefone?: string }
 export interface UpdateEmpresaDto { nome?: string; email?: string; telefone?: string; status?: 'Ativo' | 'Inativo' }
-export interface ListarEmpresasQuery { page?: unknown; limit?: unknown; search?: string; status?: string }
+export interface ListarEmpresasQuery {
+  [key: string]: unknown; // Permite chaves dinâmicas
+  page?: unknown;
+  limit?: unknown;
+  search?: string;
+  status?: string;
+}
+
 
 export const EmpresaService = {
   async listar(query: ListarEmpresasQuery) {

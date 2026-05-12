@@ -2,6 +2,7 @@
 // src/app.ts
 // =============================================================
 import express from 'express'
+import cors from 'cors';
 import { empresaRoutes } from '@/modules/empresa/empresa.routes'
 import { usuarioRoutes } from '@/modules/usuario/usuario.routes'
 import { funcionarioRoutes} from '@/modules/funcionario/funcionario.routes'
@@ -15,8 +16,15 @@ import { authRoutes } from '@/modules/auth/auth.routes'
 import { tratarErros } from '@/shared/middlewares/error.middleware'
 import { registrarLog } from '@/shared/middlewares/logger.middleware'
 
+// após criar o app:
+
+
 const app = express()
 
+app.use(cors({
+    origin:'http://localhost:3000', // URL do teu Next.js
+    credentials: true,                   // permite enviar cookies
+  }))
 app.use(express.json())
 app.use(registrarLog)
 
