@@ -1,3 +1,15 @@
+// =============================================================
+// src/shared/middlewares/index.ts  — re-exporta tudo
+// =============================================================
+export { autenticar }    from './auth.middleware'
+export { autorizar }     from './roles.middleware'
+export { escopoEmpresa } from './tenant.middleware'
+export { validar }       from './validate.middleware'
+export { registrarLog }  from './logger.middleware'
+export { tratarErros }   from './error.middleware'
+
+
+
 // // =============================================================
 // // src/shared/middlewares/auth.middleware.ts
 // // Valida JWT e injeta req.user
