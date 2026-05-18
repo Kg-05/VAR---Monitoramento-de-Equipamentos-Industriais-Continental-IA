@@ -22,7 +22,7 @@ import { registrarLog } from '@/shared/middlewares/logger.middleware'
 const app = express()
 
 app.use(cors({
-    origin:'http://localhost:3000', // URL do teu Next.js
+    origin: process.env.FRONTEND_URL, // URL do teu Next.js
     credentials: true,                   // permite enviar cookies
   }))
 app.use(express.json())
