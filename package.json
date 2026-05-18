@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:elevate-admin": "tsx prisma/elevate-admin.ts",
     "db:studio": "prisma studio",
@@ -40,5 +41,8 @@
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
