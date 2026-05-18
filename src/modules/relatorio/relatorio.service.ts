@@ -1,8 +1,8 @@
-import { Prisma } from '@prisma/client'
+// src/modules/relatorio/relatorio.service.ts
 import { prisma } from '@/shared/database/prisma.client'
 import { calcularStatusLicenca, diasParaExpirar } from '@/shared/utils/licencaStatus'
 
-interface FiltroRelatorio {
+export interface FiltroRelatorio {
   empresaId?:  string
   dataInicio?: Date
   dataFim?:    Date
@@ -10,16 +10,13 @@ interface FiltroRelatorio {
 
 export const RelatorioService = {
 
-  // Alertas: total, por nível, taxa de leitura, top equipamentos
   async alertas(filtro: FiltroRelatorio) {
-    const where: Prisma.AlertaWhereInput = {
-      ...(filtro.empresaId && { empresaId: filtro.empresaId }),
-      ...((filtro.dataInicio || filtro.dataFim) && {
-        criadoEm: {
-          ...(filtro.dataInicio && { gte: filtro.dataInicio }),
-          ...(filtro.dataFim    && { lte: filtro.dataFim    }),
-        },
-      }),
+    const where: any = {}
+    if (filtro.empresaId) where.empresaId = filtro.empresaId
+    if (filtro.dataInicio || filtro.dataFim) {
+      where.criadoEm = {}
+      if (filtro.dataInicio) where.criadoEm.gte = filtro.dataInicio
+      if (filtro.dataFim)    where.criadoEm.lte = filtro.dataFim
     }
 
     const [total, naoLidos, porNivel, porEquipamento] = await prisma.$transaction([
@@ -28,20 +25,20 @@ export const RelatorioService = {
       prisma.alerta.groupBy({
         by:      ['nivel'],
         where,
-        _count:  { nivel: true },
+        _count:  true,
         orderBy: { _count: { nivel: 'desc' } },
-      }),
+      }) as any,
       prisma.alerta.groupBy({
         by:      ['equipamentoId'],
         where,
-        _count:  { equipamentoId: true },
+        _count:  true,
         orderBy: { _count: { equipamentoId: 'desc' } },
         take:    10,
-      }),
+      }) as any,
     ])
 
     const equipamentos = await prisma.equipamento.findMany({
-      where:  { id: { in: porEquipamento.map((e) => e.equipamentoId) } },
+      where:  { id: { in: (porEquipamento as any[]).map((e: any) => e.equipamentoId) } },
       select: { id: true, nome: true, localizacao: true },
     })
     const eqMap = Object.fromEntries(equipamentos.map((e) => [e.id, e]))
@@ -50,33 +47,31 @@ export const RelatorioService = {
       total,
       naoLidos,
       taxaLeitura: total > 0 ? Math.round(((total - naoLidos) / total) * 100) : 0,
-      porNivel:    porNivel.map((p) => ({ nivel: p.nivel, total: p._count.nivel })),
-      topEquipamentos: porEquipamento.map((p) => ({
+      porNivel:    (porNivel as any[]).map((p: any) => ({ nivel: p.nivel, total: p._count })),
+      topEquipamentos: (porEquipamento as any[]).map((p: any) => ({
         equipamento:  eqMap[p.equipamentoId],
-        totalAlertas: p._count.equipamentoId,
+        totalAlertas: p._count,
       })),
     }
   },
 
-  // Financeiro: receita total, por status, top empresas pagadoras
   async financeiro(filtro: FiltroRelatorio) {
-    const where: Prisma.PagamentoWhereInput = {
-      ...(filtro.empresaId && { empresaId: filtro.empresaId }),
-      ...((filtro.dataInicio || filtro.dataFim) && {
-        criadoEm: {
-          ...(filtro.dataInicio && { gte: filtro.dataInicio }),
-          ...(filtro.dataFim    && { lte: filtro.dataFim    }),
-        },
-      }),
+    const where: any = {}
+    if (filtro.empresaId) where.empresaId = filtro.empresaId
+    if (filtro.dataInicio || filtro.dataFim) {
+      where.criadoEm = {}
+      if (filtro.dataInicio) where.criadoEm.gte = filtro.dataInicio
+      if (filtro.dataFim)    where.criadoEm.lte = filtro.dataFim
     }
 
     const [totaisStatus, receitaTotal, porEmpresa] = await prisma.$transaction([
       prisma.pagamento.groupBy({
-        by:    ['status'],
+        by:      ['status'],
         where,
-        _count: { status: true },
-        _sum:   { valor: true },
-      }),
+        _count:  true,
+        _sum:    { valor: true },
+        orderBy: { _count: { status: 'desc' } },
+      }) as any,
       prisma.pagamento.aggregate({
         where: { ...where, status: 'Concluido' },
         _sum:  { valor: true },
@@ -87,34 +82,32 @@ export const RelatorioService = {
         _sum:    { valor: true },
         orderBy: { _sum: { valor: 'desc' } },
         take:    10,
-      }),
+      }) as any,
     ])
 
     const empresas = await prisma.empresa.findMany({
-      where:  { id: { in: porEmpresa.map((p) => p.empresaId) } },
+      where:  { id: { in: (porEmpresa as any[]).map((p: any) => p.empresaId) } },
       select: { id: true, nome: true },
     })
     const empresasMap = Object.fromEntries(empresas.map((e) => [e.id, e]))
 
     return {
       receitaTotal: receitaTotal._sum.valor ?? 0,
-      porStatus: totaisStatus.map((p) => ({
+      porStatus: (totaisStatus as any[]).map((p: any) => ({
         status: p.status,
-        total:  p._count.status,
-        valor:  p._sum.valor ?? 0,
+        total:  p._count,
+        valor:  p._sum?.valor ?? 0,
       })),
-      topEmpresas: porEmpresa.map((p) => ({
+      topEmpresas: (porEmpresa as any[]).map((p: any) => ({
         empresa:   empresasMap[p.empresaId],
-        valorPago: p._sum.valor ?? 0,
+        valorPago: p._sum?.valor ?? 0,
       })),
     }
   },
 
-  // Licenças: por status calculado, por plano, a expirar em 30 dias
   async licencas(filtro: FiltroRelatorio) {
-    const where: Prisma.LicencaWhereInput = {
-      ...(filtro.empresaId && { empresaId: filtro.empresaId }),
-    }
+    const where: any = {}
+    if (filtro.empresaId) where.empresaId = filtro.empresaId
 
     const [todas, porPlano] = await prisma.$transaction([
       prisma.licenca.findMany({
@@ -122,10 +115,11 @@ export const RelatorioService = {
         include: { empresa: { select: { id: true, nome: true } } },
       }),
       prisma.licenca.groupBy({
-        by:    ['plano'],
+        by:      ['plano'],
         where,
-        _count: { plano: true },
-      }),
+        _count:  true,
+        orderBy: { _count: { plano: 'desc' } },
+      }) as any,
     ])
 
     const comStatus = todas.map((l) => ({
@@ -141,26 +135,25 @@ export const RelatorioService = {
         expiradas: comStatus.filter((l) => l.statusCalculado === 'Expirada').length,
         suspensas: comStatus.filter((l) => l.statusCalculado === 'Suspensa').length,
       },
-      porPlano: porPlano.map((p) => ({ plano: p.plano, total: p._count.plano })),
+      porPlano: (porPlano as any[]).map((p: any) => ({ plano: p.plano, total: p._count })),
       aExpirarEm30Dias: comStatus.filter(
         (l) => l.statusCalculado === 'Ativa' && l.diasRestantes <= 30
       ),
     }
   },
 
-  // Equipamentos: total, por status, com mais alertas
   async equipamentos(filtro: FiltroRelatorio) {
-    const where: Prisma.EquipamentoWhereInput = {
-      ...(filtro.empresaId && { empresaId: filtro.empresaId }),
-    }
+    const where: any = {}
+    if (filtro.empresaId) where.empresaId = filtro.empresaId
 
     const [total, porStatus, comMaisAlertas] = await prisma.$transaction([
       prisma.equipamento.count({ where }),
       prisma.equipamento.groupBy({
-        by:    ['status'],
+        by:      ['status'],
         where,
-        _count: { status: true },
-      }),
+        _count:  true,
+        orderBy: { _count: { status: 'desc' } },
+      }) as any,
       prisma.equipamento.findMany({
         where,
         orderBy: { alertas: { _count: 'desc' } },
@@ -174,7 +167,7 @@ export const RelatorioService = {
 
     return {
       total,
-      porStatus:      porStatus.map((p) => ({ status: p.status, total: p._count.status })),
+      porStatus:      (porStatus as any[]).map((p: any) => ({ status: p.status, total: p._count })),
       comMaisAlertas,
     }
   },

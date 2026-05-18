@@ -1,17 +1,19 @@
-import { NextFunction } from 'express'
+// src/shared/middlewares/validate.middleware.ts
+import { Request, Response, NextFunction } from 'express'
 import { ZodSchema } from 'zod'
 
 export function validar(schema: ZodSchema) {
-  return (req: Request, _res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body)
     if (!result.success) {
-      return _res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: 'Dados inválidos',
         errors:  result.error.flatten().fieldErrors,
       })
     }
-    req.body = result.data
+    // Usa Object.assign para evitar erro de readonly
+    Object.assign(req, { body: result.data })
     next()
   }
 }

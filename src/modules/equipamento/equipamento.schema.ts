@@ -1,3 +1,4 @@
+// src/modules/equipamento/equipamento.schema.ts
 import { z } from 'zod'
 
 export const criarEquipamentoSchema = z.object({
@@ -6,7 +7,7 @@ export const criarEquipamentoSchema = z.object({
   fabricante:  z.string().optional(),
   numeroSerie: z.string().optional(),
   localizacao: z.string().min(2),
-  empresaId:   z.string().uuid().optional(), // preenchido pelo middleware se Cliente
+  empresaId:   z.string().uuid().optional(),
 })
 
 export const atualizarEquipamentoSchema = criarEquipamentoSchema.partial().extend({
