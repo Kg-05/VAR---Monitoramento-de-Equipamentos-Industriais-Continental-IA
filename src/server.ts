@@ -1,31 +1,30 @@
-import { app } from './app'
+// 
+
+import { app }   from './app'
 import { prisma } from '@/shared/database/prisma.client'
+import { execSync } from 'child_process'
 
 const PORT = process.env.PORT ?? 3333
 
-// app.listen(PORT, () => {
-//   console.log(`
-  
-//      VAR API              
-//      Servidor rodando na porta ${PORT}      
-//      http://localhost:${PORT}/api/v1        
-//      http://localhost:${PORT}/health
-//   `)
-// })
-
 async function main() {
-  await prisma.$connect() // falha aqui se a DB não estiver acessível
+  // Corre as migrations antes de arrancar
+  try {
+    console.log('🔄 A aplicar migrations...')
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+    console.log('✅ Migrations aplicadas')
+  } catch (e) {
+    console.error('⚠️  Erro nas migrations:', e)
+  }
+
+  await prisma.$connect()
+  console.log('✅ Base de dados ligada')
+
   app.listen(PORT, () => {
-    console.log(`
-    
-       VAR API              
-       Servidor rodando na porta ${PORT}      
-       http://localhost:${PORT}/api/v1        
-       http://localhost:${PORT}/health
-    `)
+    console.log(`🚀 Servidor na porta ${PORT}`)
   })
 }
+
 main().catch((e) => {
-   console.error(e); 
-   process.exit(1)
+  console.error('❌ Erro ao arrancar:', e)
+  process.exit(1)
 })

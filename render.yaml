@@ -2,22 +2,22 @@ services:
   - type: web
     name: industrial-monitoring-api
     runtime: node
-    region: frankfurt          # muda para a região mais próxima de Angola
-    plan: free                 # muda para "starter" quando precisares de mais recursos
+    region: oregon
+    plan: free
 
-    buildCommand: npm install && npm run db:generate && npm run build
-    startCommand: npm run db:deploy && npm start
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: node dist/server.js
 
     healthCheckPath: /health
 
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        sync: false            # definido manualmente no painel do Render
-      - key: JWT_SECRET
-        sync: false            # definido manualmente no painel do Render
       - key: JWT_EXPIRES_IN
         value: 7d
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
       - key: FRONTEND_URL
-        sync: false            # URL do teu Vercel, definido manualmente
+        sync: false
