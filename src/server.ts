@@ -1,5 +1,5 @@
 // 
-
+import 'module-alias/register'
 import { app }      from './app'
 import { prisma }   from './shared/database/prisma.client'
 import { execSync } from 'child_process'
