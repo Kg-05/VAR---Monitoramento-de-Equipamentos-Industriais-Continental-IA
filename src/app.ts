@@ -24,7 +24,7 @@ const app = express()
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://var-continental-front.onrender.com',
+    'https://var-kappa.vercel.app',
   ],
   credentials: true,
 }))
