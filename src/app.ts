@@ -23,7 +23,7 @@ const app = express()
 
 app.use(cors({
   origin: [
-    'http://localhost:3333',
+    'http://localhost:3000',
     'https://var-continental-front.onrender.com',
   ],
   credentials: true,
