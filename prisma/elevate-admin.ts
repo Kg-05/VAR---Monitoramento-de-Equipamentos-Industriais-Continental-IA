@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import process from 'process';
 
 const prisma = new PrismaClient();
 
@@ -19,7 +20,7 @@ async function main() {
     }
 
     const usuarioAtualizado = await prisma.usuario.update({
-      where: { id: usuario.id },
+      where: { id: usuario!.id },
       data: { papel: 'ADM' }
     });
 

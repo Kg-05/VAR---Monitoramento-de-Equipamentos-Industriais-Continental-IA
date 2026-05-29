@@ -136,13 +136,21 @@ async function main() {
   // -----------------------------------------------------------
   console.log('👷 Criando funcionários da Empresa A...')
 
-  const funcionariosA = await prisma.funcionario.createManyAndReturn({
-    data: [
-      { nome: 'António Sebastião', email: 'a.sebastiao@sonangol-refinaria.ao', cargo: 'Engenheiro de Manutenção', telefone: '+244 923 000 001', status: StatusFuncionario.Ativo,   empresaId: empresaA.id },
-      { nome: 'Maria da Conceição', email: 'm.conceicao@sonangol-refinaria.ao', cargo: 'Técnica de Instrumentação', telefone: '+244 923 000 002', status: StatusFuncionario.Ativo,   empresaId: empresaA.id },
-      { nome: 'João Baptista',     email: 'j.baptista@sonangol-refinaria.ao',  cargo: 'Operador de Campo',        telefone: '+244 923 000 003', status: StatusFuncionario.Pendente, empresaId: empresaA.id },
-    ],
-  })
+ await prisma.funcionario.createMany({
+  data: [
+    { nome: 'António Sebastião', email: 'a.sebastiao@sonangol-refinaria.ao', cargo: 'Engenheiro de Manutenção', telefone: '+244 923 000 001', status: StatusFuncionario.Ativo, empresaId: empresaA.id },
+    { nome: 'Maria da Conceição', email: 'm.conceicao@sonangol-refinaria.ao', cargo: 'Técnica de Instrumentação', telefone: '+244 923 000 002', status: StatusFuncionario.Ativo, empresaId: empresaA.id },
+    { nome: 'João Baptista', email: 'j.baptista@sonangol-refinaria.ao', cargo: 'Operador de Campo', telefone: '+244 923 000 003', status: StatusFuncionario.Pendente, empresaId: empresaA.id },
+  ],
+})
+
+const funcionariosA = await prisma.funcionario.findMany({
+  where: {
+    empresaId: empresaA.id,
+  },
+})
+
+console.log(`   ✓ ${funcionariosA.length} funcionários criados\n`)
 
   console.log(`   ✓ ${funcionariosA.length} funcionários criados\n`)
 
@@ -377,7 +385,7 @@ async function main() {
 main()
   .catch((e) => {
     console.error('❌ Erro no seed:', e)
-    process.exit(1)
+    ;(globalThis as any).process?.exit?.(1)
   })
   .finally(async () => {
     await prisma.$disconnect()
