@@ -17,3 +17,9 @@ export async function atualizarEmpresa(req: Request, res: Response, next: NextFu
 export async function desativarEmpresa(req: Request, res: Response, next: NextFunction) {
   try { await EmpresaService.desativar(req.params.id); return noContent(res) } catch (e) { next(e) }
 }
+export async function ativarEmpresa(req: Request, res: Response, next: NextFunction) {
+  try { return success(res, await EmpresaService.ativar(req.params.id)) } catch (e) { next(e) }
+}
+export async function resumoDashboard(req: Request, res: Response, next: NextFunction) {
+  try { return success(res, await EmpresaService.resumoDashboard()) } catch (e) { next(e) }
+}
