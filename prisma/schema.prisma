@@ -1,7 +1,7 @@
 // =============================================================
 // schema.prisma — Sistema de Monitoramento de Equipamentos
 // Gerador: Prisma Client (Node.js + TypeScript)
-// Banco:   PostgreSQL
+// Banco:   MySQL
 // =============================================================
 
 generator client {
@@ -62,6 +62,12 @@ enum StatusPagamento {
   Reembolsado
 }
 
+enum StatusDocumento {
+  NaoLido
+  Lido
+  Arquivado
+}
+
 // =============================================================
 // EMPRESA
 // Entidade central do sistema. Todas as outras entidades
@@ -86,6 +92,7 @@ model Empresa {
   licencas     Licenca[]
   pagamentos   Pagamento[]
   logs         Log[]
+  documentos   Documento[]
 
   @@map("empresas")
 }
@@ -112,8 +119,9 @@ model Usuario {
   empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
 
   // Relações
-  logs          Log[]
-  alertasLidos  Alerta[] @relation("AlertaLidoPor")
+  logs               Log[]
+  alertasLidos       Alerta[]    @relation("AlertaLidoPor")
+  documentosEnviados Documento[]
 
   @@index([empresaId])
   @@index([papel])
@@ -294,4 +302,31 @@ model Pagamento {
   @@index([status])
   @@index([criadoEm])
   @@map("pagamentos")
+}
+
+// =============================================================
+// DOCUMENTO
+// Comprovativos/documentos enviados pelas empresas.
+// Armazenamento estático local (pasta /uploads no servidor).
+// =============================================================
+
+model Documento {
+  id           String          @id @default(uuid())
+  nomeArquivo  String          // nome original do ficheiro (ex: comprovativo.pdf)
+  caminho      String          // caminho relativo no servidor (ex: /uploads/documentos/uuid.pdf)
+  status       StatusDocumento @default(NaoLido)
+  criadoEm     DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  empresaId    String
+  empresa      Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  // Responsável (utilizador) que enviou o documento
+  responsavelId String?
+  responsavel   Usuario? @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId])
+  @@index([status])
+  @@index([responsavelId])
+  @@map("documentos")
 }
