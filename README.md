@@ -68,7 +68,7 @@ npx prisma migrate dev --name init
 ### 4. Popular com dados de exemplo
 
 ```bash
-npm run db:seed
+y
 ```
 
 ### 5. Iniciar em modo desenvolvimento
