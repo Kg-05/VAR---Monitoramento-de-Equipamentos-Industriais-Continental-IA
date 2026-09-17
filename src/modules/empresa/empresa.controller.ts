@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { EmpresaService } from './empresa.service'
-import { success, created, noContent } from '@/shared/utils/httpResponse'
+import { success, paginado, created, noContent } from '@/shared/utils/httpResponse'
 
 export async function listarEmpresas(req: Request, res: Response, next: NextFunction) {
-  try { return success(res, await EmpresaService.listar(req.query)) } catch (e) { next(e) }
+  try { return paginado(res, await EmpresaService.listar(req.query)) } catch (e) { next(e) }
 }
 export async function buscarEmpresa(req: Request, res: Response, next: NextFunction) {
   try { return success(res, await EmpresaService.buscarPorId(req.params.id)) } catch (e) { next(e) }

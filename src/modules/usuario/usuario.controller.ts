@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import { UsuarioService } from './usuario.service'
-import { success, created, noContent } from '@/shared/utils/httpResponse'
+import { success, paginado, created, noContent } from '@/shared/utils/httpResponse'
 import { Papel } from '@/shared/types/enums'
 
 export async function listarUsuarios(req: Request, res: Response, next: NextFunction) {
-  try { return success(res, await UsuarioService.listar(req.query)) } catch (e) { next(e) }
+  try { return paginado(res, await UsuarioService.listar(req.query)) } catch (e) { next(e) }
 }
 export async function buscarUsuario(req: Request, res: Response, next: NextFunction) {
   try { return success(res, await UsuarioService.buscarPorId(req.params.id)) } catch (e) { next(e) }

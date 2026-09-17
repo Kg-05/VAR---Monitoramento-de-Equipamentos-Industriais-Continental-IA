@@ -4,6 +4,7 @@ import { prisma }                       from '@/shared/database/prisma.client'
 import { NotFoundError, ConflictError } from '@/shared/errors/AppError'
 import { parsePagination, paginar } from '@/shared/utils/page'
 import { calcularStatusLicenca } from '@/shared/utils/licencaStatus'
+import { paraNumero } from '@/shared/utils/decimal'
 import { z } from 'zod'
 
 export const criarPagamentoSchema = z.object({
@@ -41,7 +42,8 @@ export const PagamentoService = {
       }),
       prisma.pagamento.count({ where }),
     ])
-    return paginar(pagamentos, total, pagination)
+    const comValorNumerico = pagamentos.map((p) => ({ ...p, valor: paraNumero(p.valor) }))
+    return paginar(comValorNumerico, total, pagination)
   },
 
   async buscarPorId(id: string) {
@@ -53,7 +55,7 @@ export const PagamentoService = {
       },
     })
     if (!p) throw new NotFoundError('Pagamento não encontrado')
-    return p
+    return { ...p, valor: paraNumero(p.valor) }
   },
 
   async criar(data: z.infer<typeof criarPagamentoSchema>) {
@@ -63,13 +65,14 @@ export const PagamentoService = {
       throw new ConflictError('Licença não pertence a esta empresa')
     }
     // "as any" necessário pelo mesmo conflito de tipos do Prisma 5
-    return (prisma.pagamento.create as any)({
+    const criado = await (prisma.pagamento.create as any)({
       data: { ...data, moeda: data.moeda ?? 'AOA' },
       include: {
         empresa: { select: { id: true, nome: true } },
         licenca: { select: { id: true, plano: true } },
       },
     })
+    return { ...criado, valor: paraNumero(criado.valor) }
   },
 
   async atualizar(id: string, data: z.infer<typeof atualizarPagamentoSchema>) {
@@ -90,6 +93,6 @@ export const PagamentoService = {
         })
       }
     }
-    return atualizado
+    return { ...atualizado, valor: paraNumero(atualizado.valor) }
   },
 }

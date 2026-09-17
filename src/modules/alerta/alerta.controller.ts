@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { AlertaService } from './alerta.service'
-import { success, created, noContent } from '@/shared/utils/httpResponse'
+import { success, paginado, created, noContent } from '@/shared/utils/httpResponse'
 
 export async function listarAlertas(req: Request, res: Response, next: NextFunction) {
-  try { return success(res, await AlertaService.listar(req.query)) } catch (e) { next(e) }
+  try { return paginado(res, await AlertaService.listar(req.query)) } catch (e) { next(e) }
 }
 export async function buscarAlerta(req: Request, res: Response, next: NextFunction) {
   try { return success(res, await AlertaService.buscarPorId(req.params.id, req.user?.empresaId ?? undefined)) } catch (e) { next(e) }

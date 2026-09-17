@@ -1,13 +1,16 @@
-import { NextFunction } from "express"
-import { Papel } from "../types/enums"
+import { Request, Response, NextFunction } from 'express'
+import { Papel } from '@/shared/types/enums'
 
 export function escopoEmpresa(req: Request, _res: Response, next: NextFunction) {
-  const user = (req as any).user
-  if (user?.papel === 'Cliente' && user.empresaId) {
-    (req as any).query.empresaId  = user.empresaId
-    if ((req as any).params?.empresaId) {
-      (req as any).params.empresaId = user.empresaId
+  const user = req.user
+
+  if (user?.papel === Papel.Cliente && user.empresaId) {
+    req.query.empresaId = user.empresaId
+
+    if (req.params?.empresaId) {
+      req.params.empresaId = user.empresaId
     }
   }
+
   next()
 }

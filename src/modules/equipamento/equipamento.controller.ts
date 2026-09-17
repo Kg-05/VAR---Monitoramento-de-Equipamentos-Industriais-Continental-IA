@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
-import { success, created, noContent } from '@/shared/utils/httpResponse'
+import { success, paginado, created, noContent } from '@/shared/utils/httpResponse'
 import { EquipamentoService } from './equipamento.service'
 
 export async function listarEquipamentos(req: Request, res: Response, next: NextFunction) {
   try {
-    return success(res, await EquipamentoService.listar(req.query))
+    return paginado(res, await EquipamentoService.listar(req.query))
   } catch (e) { next(e) }
 }
 
