@@ -62,6 +62,8 @@ describe('EmpresaService', () => {
     expect(result.cards).toEqual({ totalEmpresas: 3, empresasAtivas: 2, empresasInativas: 1, empresasSuspensas: 1 })
     expect(result.alertas.porNivel).toEqual(expect.objectContaining({ critico: 2 }))
     expect(result.tabela[0]).toMatchObject({ empresa: empresa.nome, licencaVendida: 1, status: 'Ativa' })
-    expect(result.tabela[0].totalPago).toContain('1.000,00')
+    expect(
+  result.tabela[0].totalPago.replace(/\s+/g, ' ').trim()
+).toBe('1 000,00 AOA')
   })
 })

@@ -20,7 +20,14 @@ describe('DocumentoService', () => {
     const result = await DocumentoService.listar({ empresaId: 'emp-1', status: 'NaoLido', search: 'relatorio', page: 2, limit: 5 })
     expect(prisma.$transaction).toHaveBeenCalled()
     const calls = vi.mocked(prisma.documento.findMany).mock.calls
-    expect(calls).toHaveLength(0) // findMany is included as transaction argument, not executed by the mock
+    expect(calls).toHaveLength(1)
+
+expect(calls[0][0]).toMatchObject({
+  where: expect.objectContaining({
+    empresaId: 'emp-1',
+    status: 'NaoLido',
+  }),
+}) // findMany is included as transaction argument, not executed by the mock
     expect(result.data).toEqual([doc])
   })
 
