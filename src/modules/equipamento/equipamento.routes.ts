@@ -16,8 +16,8 @@ import {
 
 export const equipamentoRoutes = Router()
 
-equipamentoRoutes.use(autenticar)
-equipamentoRoutes.use(escopoEmpresa)
+equipamentoRoutes.use('/equipamentos', autenticar)
+equipamentoRoutes.use('/equipamentos', escopoEmpresa)
 
 equipamentoRoutes.get(   '/equipamentos',     listarEquipamentos)
 equipamentoRoutes.post(  '/equipamentos',     validar(criarEquipamentoSchema),     criarEquipamento)

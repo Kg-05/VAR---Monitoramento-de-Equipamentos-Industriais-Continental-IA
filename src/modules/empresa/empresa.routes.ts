@@ -22,8 +22,8 @@ import {
 
 export const empresaRoutes = Router()
 
-empresaRoutes.use(autenticar)
-empresaRoutes.use(autorizar(Papel.ADM, Papel.Operacional))
+empresaRoutes.use('/empresas', autenticar)
+empresaRoutes.use('/empresas', autorizar(Papel.ADM, Papel.Operacional))
 
 empresaRoutes.get(
   '/empresas/dashboard/resumo',

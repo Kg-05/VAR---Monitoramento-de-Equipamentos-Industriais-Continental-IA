@@ -48,12 +48,13 @@ export const DocumentoService = {
     return paginar(documentos, total, pagination)
   },
 
-  async buscarPorId(id: string) {
+  async buscarPorId(id: string, empresaId?: string) {
     const doc = await prisma.documento.findUnique({
       where:   { id },
       include: { empresa: { select: { id: true, nome: true } }, responsavel: { select: { id: true, nome: true } } },
     })
     if (!doc) throw new NotFoundError('Documento não encontrado')
+    if (empresaId && doc.empresaId !== empresaId) throw new NotFoundError('Documento não encontrado')
     return doc
   },
 
@@ -64,13 +65,13 @@ export const DocumentoService = {
     })
   },
 
-  async marcarComoLido(id: string) {
-    await DocumentoService.buscarPorId(id)
+  async marcarComoLido(id: string, empresaId?: string) {
+    await DocumentoService.buscarPorId(id, empresaId)
     return prisma.documento.update({ where: { id }, data: { status: 'Lido' } })
   },
 
-  async arquivar(id: string) {
-    await DocumentoService.buscarPorId(id)
+  async arquivar(id: string, empresaId?: string) {
+    await DocumentoService.buscarPorId(id, empresaId)
     return prisma.documento.update({ where: { id }, data: { status: 'Arquivado' } })
   },
 
@@ -83,12 +84,15 @@ export const DocumentoService = {
     return prisma.documento.delete({ where: { id } })
   },
 
-  async resumo() {
+  async resumo(empresaId?: string) {
+    const where: any = {}
+    if (empresaId) where.empresaId = empresaId
+
     const [lidos, naoLidos, arquivados, total] = await prisma.$transaction([
-      prisma.documento.count({ where: { status: 'Lido' } }),
-      prisma.documento.count({ where: { status: 'NaoLido' } }),
-      prisma.documento.count({ where: { status: 'Arquivado' } }),
-      prisma.documento.count(),
+      prisma.documento.count({ where: { ...where, status: 'Lido' } }),
+      prisma.documento.count({ where: { ...where, status: 'NaoLido' } }),
+      prisma.documento.count({ where: { ...where, status: 'Arquivado' } }),
+      prisma.documento.count({ where }),
     ])
     return { lidos, naoLidos, arquivados, total }
   },
