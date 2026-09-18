@@ -1,21 +1,26 @@
 // src/modules/usuario/usuario.service.ts
 import { Papel, StatusUsuario } from '@prisma/client'
+import { authenticator } from 'otplib'
+import QRCode from 'qrcode'
 import { prisma }           from '@/shared/database/prisma.client'
-import { NotFoundError, ConflictError, ForbiddenError } from '@/shared/errors/AppError'
-import { hashSenha } from '@/shared/utils/hashSenha'
+import { NotFoundError, ConflictError, ForbiddenError, UnauthorizedError } from '@/shared/errors/AppError'
+import { hashSenha, verificarSenha } from '@/shared/utils/hashSenha'
 import { parsePagination, paginar } from '@/shared/utils/page'
 
-// Select explícito — nunca retorna senhaHash
+// Select explícito — nunca retorna senhaHash nem totpSecret
 const selectSemSenha = {
-  id:        true,
-  email:     true,
-  nome:      true,
-  papel:     true,
-  status:    true,
-  empresaId: true,
-  criadoEm:  true,
-  updatedAt: true,
-  empresa:   { select: { id: true, nome: true } },
+  id:                    true,
+  email:                 true,
+  nome:                  true,
+  papel:                 true,
+  status:                true,
+  empresaId:             true,
+  criadoEm:              true,
+  updatedAt:             true,
+  avatarUrl:             true,
+  totpAtivo:             true,
+  notificacaoEmailAtiva: true,
+  empresa:               { select: { id: true, nome: true } },
 } as const
 
 export const UsuarioService = {
@@ -100,5 +105,70 @@ export const UsuarioService = {
 
   async buscarPorEmailComSenha(email: string) {
     return prisma.usuario.findUnique({ where: { email } })
+  },
+
+  async alterarSenha(id: string, senhaAtual: string, novaSenha: string) {
+    const usuario = await prisma.usuario.findUnique({ where: { id } })
+    if (!usuario) throw new NotFoundError('Usuário não encontrado')
+    if (!await verificarSenha(senhaAtual, usuario.senhaHash)) {
+      throw new UnauthorizedError('Senha atual incorreta')
+    }
+    await prisma.usuario.update({ where: { id }, data: { senhaHash: await hashSenha(novaSenha) } })
+  },
+
+  async atualizarAvatar(id: string, avatarUrl: string) {
+    await UsuarioService.buscarPorId(id)
+    return prisma.usuario.update({ where: { id }, data: { avatarUrl }, select: selectSemSenha })
+  },
+
+  async definirNotificacaoEmail(id: string, ativa: boolean) {
+    await UsuarioService.buscarPorId(id)
+    return prisma.usuario.update({ where: { id }, data: { notificacaoEmailAtiva: ativa }, select: selectSemSenha })
+  },
+
+  async gerarSegredoTotp(id: string) {
+    const usuario = await UsuarioService.buscarPorId(id)
+    const segredo = authenticator.generateSecret()
+    const otpauthUrl = authenticator.keyuri(usuario.email, 'VAR Kituxi Tech', segredo)
+    const qrDataUrl = await QRCode.toDataURL(otpauthUrl)
+    return { segredo, otpauthUrl, qrDataUrl }
+  },
+
+  async ativarTotp(id: string, segredo: string, codigo: string) {
+    if (!authenticator.check(codigo, segredo)) {
+      throw new UnauthorizedError('Código de verificação inválido')
+    }
+    return prisma.usuario.update({
+      where: { id },
+      data:  { totpSecret: segredo, totpAtivo: true },
+      select: selectSemSenha,
+    })
+  },
+
+  async desativarTotp(id: string) {
+    return prisma.usuario.update({
+      where: { id },
+      data:  { totpSecret: null, totpAtivo: false },
+      select: selectSemSenha,
+    })
+  },
+
+  async verificarTotp(id: string, codigo: string) {
+    const usuario = await prisma.usuario.findUnique({ where: { id } })
+    if (!usuario?.totpSecret) return false
+    return authenticator.check(codigo, usuario.totpSecret)
+  },
+
+  async listarSessoes(usuarioId: string) {
+    return prisma.sessaoAtiva.findMany({
+      where:   { usuarioId, revogadaEm: null },
+      orderBy: { ultimoUso: 'desc' },
+    })
+  },
+
+  async encerrarSessao(usuarioId: string, sessaoId: string) {
+    const sessao = await prisma.sessaoAtiva.findUnique({ where: { id: sessaoId } })
+    if (!sessao || sessao.usuarioId !== usuarioId) throw new NotFoundError('Sessão não encontrada')
+    return prisma.sessaoAtiva.update({ where: { id: sessaoId }, data: { revogadaEm: new Date() } })
   },
 }

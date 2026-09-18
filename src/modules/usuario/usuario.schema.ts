@@ -13,3 +13,22 @@ export const atualizarUsuarioSchema = z.object({
   email:  z.string().email().optional(),
   status: z.enum(['Ativo', 'Inativo']).optional(),
 })
+
+export const alterarSenhaSchema = z.object({
+  senhaAtual: z.string().min(6),
+  novaSenha:  z.string().min(6),
+})
+
+export const notificacaoEmailSchema = z.object({
+  ativa: z.boolean(),
+})
+
+export const ativarTotpSchema = z.object({
+  segredo: z.string().min(1),
+  codigo:  z.string().min(6).max(6),
+})
+
+export const verificarTotpLoginSchema = z.object({
+  usuarioId: z.string().uuid(),
+  codigo:    z.string().min(6).max(6),
+})
