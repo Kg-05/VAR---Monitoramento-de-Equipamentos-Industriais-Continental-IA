@@ -24,8 +24,8 @@ export const alertaRoutes = Router()
  * Todas as operações de alertas exigem autenticação
  * e respeitam o escopo da empresa do utilizador.
  */
-alertaRoutes.use(autenticar)
-alertaRoutes.use(escopoEmpresa)
+alertaRoutes.use('/alertas', autenticar)
+alertaRoutes.use('/alertas', escopoEmpresa)
 
 alertaRoutes.get(
   '/alertas/resumo',

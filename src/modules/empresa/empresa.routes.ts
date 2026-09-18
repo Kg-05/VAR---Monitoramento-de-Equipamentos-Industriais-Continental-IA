@@ -22,25 +22,29 @@ import {
 
 export const empresaRoutes = Router()
 
-empresaRoutes.use(autenticar)
-empresaRoutes.use(autorizar(Papel.ADM, Papel.Operacional))
+empresaRoutes.use('/empresas', autenticar)
 
 empresaRoutes.get(
   '/empresas/dashboard/resumo',
+  autorizar(Papel.ADM, Papel.Operacional),
   resumoDashboard,
 )
 
 empresaRoutes.get(
   '/empresas',
+  autorizar(Papel.ADM, Papel.Operacional),
   listarEmpresas,
 )
 
 empresaRoutes.post(
   '/empresas',
+  autorizar(Papel.ADM, Papel.Operacional),
   validar(criarEmpresaSchema),
   criarEmpresa,
 )
 
+// Um Cliente pode consultar apenas os dados da própria empresa
+// (o escopo é validado em EmpresaService.buscarPorId).
 empresaRoutes.get(
   '/empresas/:id',
   buscarEmpresa,
@@ -48,16 +52,19 @@ empresaRoutes.get(
 
 empresaRoutes.patch(
   '/empresas/:id',
+  autorizar(Papel.ADM, Papel.Operacional),
   validar(atualizarEmpresaSchema),
   atualizarEmpresa,
 )
 
 empresaRoutes.patch(
   '/empresas/:id/ativar',
+  autorizar(Papel.ADM, Papel.Operacional),
   ativarEmpresa,
 )
 
 empresaRoutes.delete(
   '/empresas/:id',
+  autorizar(Papel.ADM, Papel.Operacional),
   desativarEmpresa,
 )

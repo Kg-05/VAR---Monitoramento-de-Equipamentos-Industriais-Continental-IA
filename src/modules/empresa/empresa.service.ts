@@ -29,7 +29,7 @@ export const EmpresaService = {
         where, skip: pagination.skip, take: pagination.take,
         orderBy: { criadoEm: 'desc' },
         include: {
-          _count:  { select: { funcionarios: true, equipamentos: true } },
+          _count:  { select: { funcionarios: true, equipamentos: true, alertas: true } },
           licencas: { orderBy: { expiraEm: 'desc' }, take: 1, select: { plano: true, status: true, expiraEm: true } },
         },
       }),
@@ -38,12 +38,13 @@ export const EmpresaService = {
     return paginar(empresas, total, pagination)
   },
 
-  async buscarPorId(id: string) {
+  async buscarPorId(id: string, empresaId?: string) {
     const empresa = await prisma.empresa.findUnique({
       where:   { id },
       include: { licencas: { orderBy: { criadoEm: 'desc' }, take: 1 }, _count: { select: { funcionarios: true, equipamentos: true, alertas: true } } },
     })
     if (!empresa) throw new NotFoundError('Empresa não encontrada')
+    if (empresaId && empresa.id !== empresaId) throw new NotFoundError('Empresa não encontrada')
     return empresa
   },
 

@@ -54,7 +54,7 @@ export const LicencaService = {
     return paginar(filtradas, total, pagination)
   },
 
-  async buscarPorId(id: string) {
+  async buscarPorId(id: string, empresaId?: string) {
     const l = await prisma.licenca.findUnique({
       where:   { id },
       include: {
@@ -63,6 +63,7 @@ export const LicencaService = {
       },
     })
     if (!l) throw new NotFoundError('Licença não encontrada')
+    if (empresaId && l.empresaId !== empresaId) throw new NotFoundError('Licença não encontrada')
     return {
       ...l,
       statusCalculado: calcularStatusLicenca(l.expiraEm, l.status),
