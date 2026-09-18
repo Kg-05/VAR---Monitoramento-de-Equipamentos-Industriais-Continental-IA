@@ -81,17 +81,20 @@ describe('Pagamento - Integration', () => {
   })
 
   describe('Autorização por papel', () => {
-    it('bloqueia Cliente em todas as rotas de pagamentos', async () => {
+    it('permite ao Cliente listar apenas os pagamentos da própria empresa', async () => {
+      vi.mocked(PagamentoService.listar).mockResolvedValue({
+        data: [],
+        meta: { total: 0, pagina: 1, limite: 10, totalPaginas: 0 },
+      } as never)
+
       const response = await request(app)
         .get('/api/v1/pagamentos')
         .set('Authorization', `Bearer ${tokenCliente}`)
 
-      expect(response.status).toBe(403)
-      expect(response.body).toEqual({
-        success: false,
-        message: 'Acesso negado para este papel',
-      })
-      expect(PagamentoService.listar).not.toHaveBeenCalled()
+      expect(response.status).toBe(200)
+      expect(PagamentoService.listar).toHaveBeenCalledWith(
+        expect.objectContaining({ empresaId: EMP_TAAG }),
+      )
     })
 
     it('permite ADM', async () => {
@@ -136,7 +139,7 @@ describe('Pagamento - Integration', () => {
         .set('Authorization', `Bearer ${tokenAdmin}`)
 
       expect(response.status).toBe(200)
-      expect(PagamentoService.buscarPorId).toHaveBeenCalledWith(PAG_ID)
+      expect(PagamentoService.buscarPorId).toHaveBeenCalledWith(PAG_ID, undefined)
     })
 
     it('retorna 404 quando o pagamento não existe', async () => {
@@ -153,6 +156,19 @@ describe('Pagamento - Integration', () => {
         success: false,
         message: 'Pagamento não encontrado',
       })
+    })
+
+    it('não permite ao Cliente ver pagamento de outra empresa', async () => {
+      vi.mocked(PagamentoService.buscarPorId).mockRejectedValue(
+        new NotFoundError('Pagamento não encontrado'),
+      )
+
+      const response = await request(app)
+        .get(`/api/v1/pagamentos/${PAG_ID}`)
+        .set('Authorization', `Bearer ${tokenCliente}`)
+
+      expect(response.status).toBe(404)
+      expect(PagamentoService.buscarPorId).toHaveBeenCalledWith(PAG_ID, EMP_TAAG)
     })
   })
 
@@ -201,6 +217,24 @@ describe('Pagamento - Integration', () => {
         success: false,
         message: 'Licença não pertence a esta empresa',
       })
+    })
+
+    it('cliente usa a empresa do token ao submeter um pagamento', async () => {
+      const EMP_SONANGOL = '22222222-2222-4222-8222-222222222222'
+      vi.mocked(PagamentoService.criar).mockResolvedValue({ id: PAG_ID } as never)
+
+      const response = await request(app)
+        .post('/api/v1/pagamentos')
+        .set('Authorization', `Bearer ${tokenCliente}`)
+        .send({ empresaId: EMP_SONANGOL, licencaId: LIC_ID, valor: 1000 })
+
+      expect(response.status).toBe(201)
+      expect(PagamentoService.criar).toHaveBeenCalledWith(
+        expect.objectContaining({ empresaId: EMP_TAAG }),
+      )
+      expect(PagamentoService.criar).not.toHaveBeenCalledWith(
+        expect.objectContaining({ empresaId: EMP_SONANGOL }),
+      )
     })
   })
 

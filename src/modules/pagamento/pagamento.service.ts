@@ -46,7 +46,7 @@ export const PagamentoService = {
     return paginar(comValorNumerico, total, pagination)
   },
 
-  async buscarPorId(id: string) {
+  async buscarPorId(id: string, empresaId?: string) {
     const p = await prisma.pagamento.findUnique({
       where:   { id },
       include: {
@@ -55,6 +55,7 @@ export const PagamentoService = {
       },
     })
     if (!p) throw new NotFoundError('Pagamento não encontrado')
+    if (empresaId && p.empresaId !== empresaId) throw new NotFoundError('Pagamento não encontrado')
     return { ...p, valor: paraNumero(p.valor) }
   },
 

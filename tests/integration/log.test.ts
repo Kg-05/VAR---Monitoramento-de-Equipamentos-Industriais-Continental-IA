@@ -74,17 +74,20 @@ describe('Log - Integration', () => {
   })
 
   describe('Autorização por papel', () => {
-    it('bloqueia Cliente', async () => {
+    it('permite ao Cliente ler apenas os logs da própria empresa', async () => {
+      vi.mocked(LogService.listar).mockResolvedValue({
+        data: [],
+        meta: { total: 0, pagina: 1, limite: 10, totalPaginas: 0 },
+      } as never)
+
       const response = await request(app)
         .get('/api/v1/logs')
         .set('Authorization', `Bearer ${tokenCliente}`)
 
-      expect(response.status).toBe(403)
-      expect(response.body).toEqual({
-        success: false,
-        message: 'Acesso negado para este papel',
-      })
-      expect(LogService.listar).not.toHaveBeenCalled()
+      expect(response.status).toBe(200)
+      expect(LogService.listar).toHaveBeenCalledWith(
+        expect.objectContaining({ empresaId: '11111111-1111-4111-8111-111111111111' }),
+      )
     })
 
     it('permite ADM', async () => {

@@ -9,10 +9,14 @@ import { Papel } from '@/shared/types/enums'
 export const usuarioRoutes = Router()
 
 usuarioRoutes.use('/usuarios', autenticar)
-usuarioRoutes.use('/usuarios', autorizar(Papel.ADM, Papel.Operacional))
 
-usuarioRoutes.get(   '/usuarios',     listarUsuarios)
-usuarioRoutes.post(  '/usuarios',     validar(criarUsuarioSchema),     criarUsuario)
-usuarioRoutes.get(   '/usuarios/:id', buscarUsuario)
+usuarioRoutes.get(   '/usuarios',     autorizar(Papel.ADM, Papel.Operacional), listarUsuarios)
+usuarioRoutes.post(  '/usuarios',     autorizar(Papel.ADM, Papel.Operacional), validar(criarUsuarioSchema), criarUsuario)
+usuarioRoutes.get(   '/usuarios/:id', autorizar(Papel.ADM, Papel.Operacional), buscarUsuario)
+
+// Qualquer utilizador pode actualizar o próprio perfil (nome/email);
+// ADM/Operacional podem actualizar qualquer utilizador — a permissão
+// é verificada dentro do controller.
 usuarioRoutes.patch( '/usuarios/:id', validar(atualizarUsuarioSchema), atualizarUsuario)
-usuarioRoutes.delete('/usuarios/:id', desativarUsuario)
+
+usuarioRoutes.delete('/usuarios/:id', autorizar(Papel.ADM, Papel.Operacional), desativarUsuario)

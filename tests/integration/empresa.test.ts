@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { app } from '../../src/app'
 import { EmpresaService } from '../../src/modules/empresa/empresa.service'
+import { NotFoundError } from '../../src/shared/errors/AppError'
 
 process.env.JWT_SECRET = 'segredo-de-teste'
 
@@ -150,7 +151,39 @@ describe('Empresa - Integration', () => {
         .set('Authorization', `Bearer ${token}`)
 
       expect(response.status).toBe(200)
-      expect(EmpresaService.buscarPorId).toHaveBeenCalledWith(EMPRESA_ID)
+      expect(EmpresaService.buscarPorId).toHaveBeenCalledWith(EMPRESA_ID, undefined)
+    })
+
+    it('deve permitir que um Cliente veja os dados da própria empresa', async () => {
+      vi.spyOn(EmpresaService, 'buscarPorId').mockResolvedValue({
+        id: EMPRESA_ID,
+        nome: 'Empresa Teste',
+      } as any)
+
+      const token = gerarToken('Cliente', EMPRESA_ID)
+
+      const response = await request(app)
+        .get(`/api/v1/empresas/${EMPRESA_ID}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      expect(response.status).toBe(200)
+      expect(EmpresaService.buscarPorId).toHaveBeenCalledWith(EMPRESA_ID, EMPRESA_ID)
+    })
+
+    it('não deve permitir que um Cliente veja outra empresa', async () => {
+      vi.spyOn(EmpresaService, 'buscarPorId').mockRejectedValue(
+        new NotFoundError('Empresa não encontrada'),
+      )
+
+      const outraEmpresaId = '22222222-2222-4222-8222-222222222222'
+      const token = gerarToken('Cliente', EMPRESA_ID)
+
+      const response = await request(app)
+        .get(`/api/v1/empresas/${outraEmpresaId}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      expect(response.status).toBe(404)
+      expect(EmpresaService.buscarPorId).toHaveBeenCalledWith(outraEmpresaId, EMPRESA_ID)
     })
   })
 

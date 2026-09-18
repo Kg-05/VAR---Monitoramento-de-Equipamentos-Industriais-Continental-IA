@@ -80,17 +80,20 @@ describe('Licença - Integration', () => {
   })
 
   describe('Autorização por papel', () => {
-    it('bloqueia Cliente em todas as rotas de licenças', async () => {
+    it('permite ao Cliente listar apenas a licença da própria empresa', async () => {
+      vi.mocked(LicencaService.listar).mockResolvedValue({
+        data: [],
+        meta: { total: 0, pagina: 1, limite: 10, totalPaginas: 0 },
+      } as never)
+
       const response = await request(app)
         .get('/api/v1/licencas')
         .set('Authorization', `Bearer ${tokenClienteTaag}`)
 
-      expect(response.status).toBe(403)
-      expect(response.body).toEqual({
-        success: false,
-        message: 'Acesso negado para este papel',
-      })
-      expect(LicencaService.listar).not.toHaveBeenCalled()
+      expect(response.status).toBe(200)
+      expect(LicencaService.listar).toHaveBeenCalledWith(
+        expect.objectContaining({ empresaId: EMP_TAAG }),
+      )
     })
 
     it('permite ADM', async () => {
@@ -135,7 +138,7 @@ describe('Licença - Integration', () => {
         .set('Authorization', `Bearer ${tokenAdmin}`)
 
       expect(response.status).toBe(200)
-      expect(LicencaService.buscarPorId).toHaveBeenCalledWith(LIC_ID)
+      expect(LicencaService.buscarPorId).toHaveBeenCalledWith(LIC_ID, undefined)
     })
 
     it('retorna 404 quando a licença não existe', async () => {
@@ -152,6 +155,19 @@ describe('Licença - Integration', () => {
         success: false,
         message: 'Licença não encontrada',
       })
+    })
+
+    it('não permite ao Cliente ver a licença de outra empresa', async () => {
+      vi.mocked(LicencaService.buscarPorId).mockRejectedValue(
+        new NotFoundError('Licença não encontrada'),
+      )
+
+      const response = await request(app)
+        .get(`/api/v1/licencas/${LIC_ID}`)
+        .set('Authorization', `Bearer ${tokenClienteTaag}`)
+
+      expect(response.status).toBe(404)
+      expect(LicencaService.buscarPorId).toHaveBeenCalledWith(LIC_ID, EMP_TAAG)
     })
   })
 
@@ -229,6 +245,30 @@ describe('Licença - Integration', () => {
 
       expect(response.status).toBe(201)
     })
+
+    it('cliente usa a empresa do token ao auto-comprar uma licença', async () => {
+      const EMP_SONANGOL = '22222222-2222-4222-8222-222222222222'
+      vi.mocked(LicencaService.criar).mockResolvedValue({ id: LIC_ID } as never)
+
+      const response = await request(app)
+        .post('/api/v1/licencas')
+        .set('Authorization', `Bearer ${tokenClienteTaag}`)
+        .send({
+          empresaId: EMP_SONANGOL,
+          plano: 'Basico',
+          maxDeFuncionarios: 5,
+          inicioEm: '2026-01-01',
+          expiraEm: '2027-01-01',
+        })
+
+      expect(response.status).toBe(201)
+      expect(LicencaService.criar).toHaveBeenCalledWith(
+        expect.objectContaining({ empresaId: EMP_TAAG }),
+      )
+      expect(LicencaService.criar).not.toHaveBeenCalledWith(
+        expect.objectContaining({ empresaId: EMP_SONANGOL }),
+      )
+    })
   })
 
   describe('PATCH /api/v1/licencas/:id', () => {
@@ -257,6 +297,16 @@ describe('Licença - Integration', () => {
         .send({ status: 'NaoExiste' })
 
       expect(response.status).toBe(400)
+      expect(LicencaService.atualizar).not.toHaveBeenCalled()
+    })
+
+    it('impede o Cliente de alterar o status da própria licença', async () => {
+      const response = await request(app)
+        .patch(`/api/v1/licencas/${LIC_ID}`)
+        .set('Authorization', `Bearer ${tokenClienteTaag}`)
+        .send({ status: 'Ativa' })
+
+      expect(response.status).toBe(403)
       expect(LicencaService.atualizar).not.toHaveBeenCalled()
     })
   })

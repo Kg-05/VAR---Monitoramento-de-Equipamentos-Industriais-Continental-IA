@@ -251,17 +251,28 @@ describe('Funcionário - Integration', () => {
   })
 
   describe('DELETE /api/v1/funcionarios/:id', () => {
-    it('impede cliente de desativar funcionário', async () => {
+    it('permite ao cliente desativar um funcionário da própria empresa', async () => {
+      vi.mocked(FuncionarioService.desativar).mockResolvedValue(undefined as never)
+
       const response = await request(app)
         .delete('/api/v1/funcionarios/func-taag-1')
         .set('Authorization', `Bearer ${tokenClienteTaag}`)
 
-      expect(response.status).toBe(403)
-      expect(response.body).toEqual({
-        success: false,
-        message: 'Acesso negado para este papel',
-      })
-      expect(FuncionarioService.desativar).not.toHaveBeenCalled()
+      expect(response.status).toBe(204)
+      expect(FuncionarioService.desativar).toHaveBeenCalledWith('func-taag-1', EMP_TAAG)
+    })
+
+    it('não permite ao cliente desativar funcionário de outra empresa', async () => {
+      vi.mocked(FuncionarioService.desativar).mockRejectedValue(
+        new NotFoundError('Funcionário não encontrado'),
+      )
+
+      const response = await request(app)
+        .delete('/api/v1/funcionarios/func-sonangol-1')
+        .set('Authorization', `Bearer ${tokenClienteTaag}`)
+
+      expect(response.status).toBe(404)
+      expect(FuncionarioService.desativar).toHaveBeenCalledWith('func-sonangol-1', EMP_TAAG)
     })
 
     it('permite ADM desativar funcionário', async () => {
