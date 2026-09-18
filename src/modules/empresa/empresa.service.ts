@@ -29,7 +29,7 @@ export const EmpresaService = {
         where, skip: pagination.skip, take: pagination.take,
         orderBy: { criadoEm: 'desc' },
         include: {
-          _count:  { select: { funcionarios: true, equipamentos: true } },
+          _count:  { select: { funcionarios: true, equipamentos: true, alertas: true } },
           licencas: { orderBy: { expiraEm: 'desc' }, take: 1, select: { plano: true, status: true, expiraEm: true } },
         },
       }),
