@@ -46,6 +46,12 @@ const tokenOperacional = gerarToken({
   empresaId: null,
 })
 
+const tokenProprioUsuario = gerarToken({
+  id: USR_ID,
+  papel: Papel.Cliente,
+  empresaId: '11111111-1111-4111-8111-111111111111',
+})
+
 describe('Usuário - Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -217,6 +223,48 @@ describe('Usuário - Integration', () => {
         USR_ID,
         expect.objectContaining({ nome: 'Atualizado' }),
       )
+    })
+
+    it('permite que o próprio usuário edite nome/email', async () => {
+      vi.mocked(UsuarioService.atualizar).mockResolvedValue({
+        id: USR_ID,
+        nome: 'Meu Novo Nome',
+      } as never)
+
+      const response = await request(app)
+        .patch(`/api/v1/usuarios/${USR_ID}`)
+        .set('Authorization', `Bearer ${tokenProprioUsuario}`)
+        .send({ nome: 'Meu Novo Nome', email: 'novo@email.com' })
+
+      expect(response.status).toBe(200)
+      expect(UsuarioService.atualizar).toHaveBeenCalledWith(USR_ID, {
+        nome: 'Meu Novo Nome',
+        email: 'novo@email.com',
+      })
+    })
+
+    it('ignora o campo status quando o próprio usuário se edita', async () => {
+      vi.mocked(UsuarioService.atualizar).mockResolvedValue({ id: USR_ID } as never)
+
+      await request(app)
+        .patch(`/api/v1/usuarios/${USR_ID}`)
+        .set('Authorization', `Bearer ${tokenProprioUsuario}`)
+        .send({ nome: 'Nome', status: 'Inativo' })
+
+      expect(UsuarioService.atualizar).toHaveBeenCalledWith(USR_ID, {
+        nome: 'Nome',
+        email: undefined,
+      })
+    })
+
+    it('impede que um usuário edite o perfil de outro', async () => {
+      const response = await request(app)
+        .patch('/api/v1/usuarios/outro-usuario-id')
+        .set('Authorization', `Bearer ${tokenProprioUsuario}`)
+        .send({ nome: 'Hackeado' })
+
+      expect(response.status).toBe(403)
+      expect(UsuarioService.atualizar).not.toHaveBeenCalled()
     })
   })
 

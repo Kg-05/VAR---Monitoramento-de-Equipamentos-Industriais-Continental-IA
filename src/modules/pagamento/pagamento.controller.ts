@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { success, paginado, created } from '@/shared/utils/httpResponse'
+import { Papel } from '@/shared/types/enums'
 import { PagamentoService } from './pagamento.service'
 
 export async function listarPagamentos(req: Request, res: Response, next: NextFunction) {
@@ -10,13 +11,14 @@ export async function listarPagamentos(req: Request, res: Response, next: NextFu
 
 export async function buscarPagamento(req: Request, res: Response, next: NextFunction) {
   try {
-    return success(res, await PagamentoService.buscarPorId(req.params.id))
+    return success(res, await PagamentoService.buscarPorId(req.params.id, req.user?.empresaId ?? undefined))
   } catch (e) { next(e) }
 }
 
 export async function criarPagamento(req: Request, res: Response, next: NextFunction) {
   try {
-    return created(res, await PagamentoService.criar(req.body))
+    const empresaId = req.user?.papel === Papel.Cliente ? req.user.empresaId! : req.body.empresaId
+    return created(res, await PagamentoService.criar({ ...req.body, empresaId }))
   } catch (e) { next(e) }
 }
 

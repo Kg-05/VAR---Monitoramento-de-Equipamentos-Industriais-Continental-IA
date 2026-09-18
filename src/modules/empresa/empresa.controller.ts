@@ -6,7 +6,7 @@ export async function listarEmpresas(req: Request, res: Response, next: NextFunc
   try { return paginado(res, await EmpresaService.listar(req.query)) } catch (e) { next(e) }
 }
 export async function buscarEmpresa(req: Request, res: Response, next: NextFunction) {
-  try { return success(res, await EmpresaService.buscarPorId(req.params.id)) } catch (e) { next(e) }
+  try { return success(res, await EmpresaService.buscarPorId(req.params.id, req.user?.empresaId ?? undefined)) } catch (e) { next(e) }
 }
 export async function criarEmpresa(req: Request, res: Response, next: NextFunction) {
   try { return created(res, await EmpresaService.criar(req.body)) } catch (e) { next(e) }
