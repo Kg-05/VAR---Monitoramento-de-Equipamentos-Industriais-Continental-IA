@@ -93,8 +93,15 @@ export const AlertaService = {
       }),
     ])
 
-    const contagem: any = { razoavel: 0, medio: 0, critico: 0 }
-    ;(porNivel as any[]).forEach((p: any) => { contagem[p.nivel] = p._count })
+const contagem: Record<NivelAlerta, number> = {
+  razoavel: 0,
+  medio: 0,
+  critico: 0,
+}
+
+;(porNivel as any[]).forEach((p: any) => {
+  contagem[p.nivel as NivelAlerta] = p._count.nivel
+})
 
     return { total, naoLidos, porNivel: contagem }
   },

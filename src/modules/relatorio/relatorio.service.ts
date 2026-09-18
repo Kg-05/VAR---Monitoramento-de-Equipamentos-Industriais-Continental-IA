@@ -1,6 +1,7 @@
 // src/modules/relatorio/relatorio.service.ts
 import { prisma } from '@/shared/database/prisma.client'
 import { calcularStatusLicenca, diasParaExpirar } from '@/shared/utils/licencaStatus'
+import { paraNumero } from '@/shared/utils/decimal'
 
 export interface FiltroRelatorio {
   empresaId?:  string
@@ -92,15 +93,15 @@ export const RelatorioService = {
     const empresasMap = Object.fromEntries(empresas.map((e) => [e.id, e]))
 
     return {
-      receitaTotal: receitaTotal._sum.valor ?? 0,
+      receitaTotal: paraNumero(receitaTotal._sum.valor),
       porStatus: (totaisStatus as any[]).map((p: any) => ({
         status: p.status,
         total:  p._count,
-        valor:  p._sum?.valor ?? 0,
+        valor:  paraNumero(p._sum?.valor),
       })),
       topEmpresas: (porEmpresa as any[]).map((p: any) => ({
         empresa:   empresasMap[p.empresaId],
-        valorPago: p._sum?.valor ?? 0,
+        valorPago: paraNumero(p._sum?.valor),
       })),
     }
   },

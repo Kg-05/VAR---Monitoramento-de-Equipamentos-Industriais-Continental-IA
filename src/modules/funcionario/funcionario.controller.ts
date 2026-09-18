@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { FuncionarioService } from './funcionario.service'
-import { success, created, noContent } from '@/shared/utils/httpResponse'
+import { success, paginado, created, noContent } from '@/shared/utils/httpResponse'
 
 export async function listarFuncionarios(req: Request, res: Response, next: NextFunction) {
-  try { return success(res, await FuncionarioService.listar(req.query)) } catch (e) { next(e) }
+  try { return paginado(res, await FuncionarioService.listar(req.query)) } catch (e) { next(e) }
 }
 export async function buscarFuncionario(req: Request, res: Response, next: NextFunction) {
   try { return success(res, await FuncionarioService.buscarPorId(req.params.id, req.user?.empresaId ?? undefined)) 

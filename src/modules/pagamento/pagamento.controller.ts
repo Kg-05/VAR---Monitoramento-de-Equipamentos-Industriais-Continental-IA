@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
-import { success, created } from '@/shared/utils/httpResponse'
+import { success, paginado, created } from '@/shared/utils/httpResponse'
 import { PagamentoService } from './pagamento.service'
 
 export async function listarPagamentos(req: Request, res: Response, next: NextFunction) {
   try {
-    return success(res, await PagamentoService.listar(req.query))
+    return paginado(res, await PagamentoService.listar(req.query))
   } catch (e) { next(e) }
 }
 

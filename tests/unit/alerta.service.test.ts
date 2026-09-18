@@ -23,9 +23,9 @@ vi.mock('@/shared/database/prisma.client', () => ({
   },
 }))
 
-import { prisma } from '@/shared/database/prisma.client'
-import { AlertaService } from '@/modules/alerta/alerta'
-import { NotFoundError, ConflictError } from '@/shared/errors/AppError'
+import { prisma } from '../../src/shared/database/prisma.client'
+import { AlertaService } from '../../src/modules/alerta/alerta.service'
+import { NotFoundError, ConflictError } from '../../src/shared/errors/AppError'
 
 const mockAlerta = {
   id:            'alerta-uuid-001',

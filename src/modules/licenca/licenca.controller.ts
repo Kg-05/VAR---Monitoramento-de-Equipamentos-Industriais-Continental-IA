@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
-import { success, created } from '@/shared/utils/httpResponse'
+import { success, paginado, created } from '@/shared/utils/httpResponse'
 import { LicencaService } from './licenca.service'
 
 export async function listarLicencas(req: Request, res: Response, next: NextFunction) {
-  try { return success(res, await LicencaService.listar(req.query)) } catch (e) { next(e) }
+  try { return paginado(res, await LicencaService.listar(req.query)) } catch (e) { next(e) }
 }
 export async function buscarLicenca(req: Request, res: Response, next: NextFunction) {
   try { return success(res, await LicencaService.buscarPorId(req.params.id)) } catch (e) { next(e) }
