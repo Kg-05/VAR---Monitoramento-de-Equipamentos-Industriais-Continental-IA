@@ -10,7 +10,7 @@ async function main() {
   console.log('✅ Base de dados ligada')
 
   app.listen(PORT, () => {
-    console.log(`🚀 Servidor na porta ${PORT}`)
+    console.log(`Servidor na porta ${PORT}`)
     console.log(`Ambiente: ${process.env.NODE_ENV ?? 'development'}`)
   })
 }
