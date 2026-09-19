@@ -28,6 +28,10 @@ export const PagamentoService = {
     if (query.empresaId) where.empresaId = query.empresaId
     if (query.licencaId) where.licencaId = query.licencaId
     if (query.status)    where.status    = query.status
+    if (query.search) where.OR = [
+      { referencia: { contains: query.search, mode: 'insensitive' } },
+      { empresa: { nome: { contains: query.search, mode: 'insensitive' } } },
+    ]
 
     const [pagamentos, total] = await prisma.$transaction([
       prisma.pagamento.findMany({

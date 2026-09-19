@@ -4,7 +4,7 @@ import { autorizar } from '@/shared/middlewares/roles.middleware'
 import { validar } from '@/shared/middlewares/validate.middleware'
 import { escopoEmpresa } from '@/shared/middlewares/tenant.middleware'
 import { Papel } from '@/shared/types/enums'
-import { atualizarPagamento, buscarPagamento, criarPagamento, listarPagamentos } from './pagamento.controller'
+import { atualizarPagamento, buscarPagamento, criarPagamento, listarPagamentos, baixarFatura } from './pagamento.controller'
 import { atualizarPagamentoSchema, criarPagamentoSchema } from './pagamento.schema'
 
 export const pagamentoRoutes = Router()
@@ -17,6 +17,7 @@ pagamentoRoutes.use('/pagamentos', escopoEmpresa)
 pagamentoRoutes.get(  '/pagamentos',     listarPagamentos)
 pagamentoRoutes.post( '/pagamentos',     validar(criarPagamentoSchema),     criarPagamento)
 pagamentoRoutes.get(  '/pagamentos/:id', buscarPagamento)
+pagamentoRoutes.get(  '/pagamentos/:id/fatura', baixarFatura)
 
 // Confirmar/reembolsar um pagamento é uma acção administrativa: é o que
 // activa/renova a licença, por isso nunca pode ser feito pelo próprio

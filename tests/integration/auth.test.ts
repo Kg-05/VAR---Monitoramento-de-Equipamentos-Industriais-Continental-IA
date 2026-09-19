@@ -71,10 +71,13 @@ describe('Auth - Integration', () => {
         },
       })
 
-      expect(AuthService.login).toHaveBeenCalledWith({
-        email: 'gestor@sonangol-refinaria.ao',
-        senha: 'Cliente@123',
-      })
+      expect(AuthService.login).toHaveBeenCalledWith(
+        {
+          email: 'gestor@sonangol-refinaria.ao',
+          senha: 'Cliente@123',
+        },
+        expect.objectContaining({ ip: expect.any(String) }),
+      )
     })
 
     it('rejeita email inválido', async () => {

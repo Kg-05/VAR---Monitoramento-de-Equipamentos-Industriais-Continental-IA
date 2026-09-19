@@ -28,6 +28,7 @@ export const AlertaService = {
         orderBy: [{ nivel: 'desc' }, { criadoEm: 'desc' }],
         include: {
           equipamento: { select: { id: true, nome: true, localizacao: true } },
+          empresa:     { select: { id: true, nome: true } },
           lidoPor:     { select: { id: true, nome: true } },
         },
       }),
@@ -100,7 +101,7 @@ const contagem: Record<NivelAlerta, number> = {
 }
 
 ;(porNivel as any[]).forEach((p: any) => {
-  contagem[p.nivel as NivelAlerta] = p._count.nivel
+  contagem[p.nivel as NivelAlerta] = p._count
 })
 
     return { total, naoLidos, porNivel: contagem }

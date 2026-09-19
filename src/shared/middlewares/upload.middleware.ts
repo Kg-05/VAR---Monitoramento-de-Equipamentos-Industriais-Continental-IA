@@ -35,3 +35,48 @@ export const uploadDocumento = multer({
     }
   },
 })
+
+// ── Upload de avatares/logotipos (apenas imagens) ──
+const uploadImagensDir = path.join(process.cwd(), 'uploads', 'imagens')
+
+if (!fs.existsSync(uploadImagensDir)) {
+  fs.mkdirSync(uploadImagensDir, { recursive: true })
+}
+
+const storageImagens = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadImagensDir),
+  filename: (_req, file, cb) => {
+    const ext    = path.extname(file.originalname)
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`
+    cb(null, unique)
+  },
+})
+
+const EXTENSOES_IMAGEM_PERMITIDAS = ['.jpg', '.jpeg', '.png']
+
+export const uploadImagem = multer({
+  storage: storageImagens,
+  limits:  { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase()
+    if (EXTENSOES_IMAGEM_PERMITIDAS.includes(ext)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Tipo de ficheiro não permitido. Use JPG ou PNG.'))
+    }
+  },
+})
+
+// ── Upload de ficheiro de backup (JSON, mantido em memória) ──
+export const uploadBackup = multer({
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: 20 * 1024 * 1024 }, // 20MB
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase()
+    if (ext === '.json') {
+      cb(null, true)
+    } else {
+      cb(new Error('Tipo de ficheiro não permitido. Use um ficheiro .json de backup.'))
+    }
+  },
+})

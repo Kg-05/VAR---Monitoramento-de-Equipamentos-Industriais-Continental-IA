@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { success, paginado, created } from '@/shared/utils/httpResponse'
 import { Papel } from '@/shared/types/enums'
 import { PagamentoService } from './pagamento.service'
+import { FaturaService } from './fatura.service'
 
 export async function listarPagamentos(req: Request, res: Response, next: NextFunction) {
   try {
@@ -25,5 +26,14 @@ export async function criarPagamento(req: Request, res: Response, next: NextFunc
 export async function atualizarPagamento(req: Request, res: Response, next: NextFunction) {
   try {
     return success(res, await PagamentoService.atualizar(req.params.id, req.body))
+  } catch (e) { next(e) }
+}
+
+export async function baixarFatura(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { nomeFicheiro, stream } = await FaturaService.gerarPdf(req.params.id, req.user?.empresaId ?? undefined)
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${nomeFicheiro}"`)
+    stream.pipe(res)
   } catch (e) { next(e) }
 }

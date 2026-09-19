@@ -158,9 +158,9 @@ describe('AlertaService', () => {
         10,
         4,
         [
-          { nivel: 'critico',  _count: { nivel: 2 } },
-          { nivel: 'medio',    _count: { nivel: 5 } },
-          { nivel: 'razoavel', _count: { nivel: 3 } },
+          { nivel: 'critico',  _count: 2 },
+          { nivel: 'medio',    _count: 5 },
+          { nivel: 'razoavel', _count: 3 },
         ],
       ] as any)
 

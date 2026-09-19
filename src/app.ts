@@ -15,6 +15,8 @@ import { relatorioRoutes } from '@/modules/relatorio/relatorio.routes'
 import { pagamentoRoutes } from '@/modules/pagamento/pagamento.routes'
 import { documentoRoutes } from '@/modules/documento/documento.routes'
 import { authRoutes } from '@/modules/auth/auth.routes'
+import { plataformaRoutes } from '@/modules/plataforma/plataforma.routes'
+import { backupRoutes } from '@/modules/backup/backup.routes'
 import { tratarErros } from '@/shared/middlewares/error.middleware'
 import { registrarLog } from '@/shared/middlewares/logger.middleware'
 
@@ -49,6 +51,8 @@ app.use(v1, pagamentoRoutes)
 app.use(v1, logRoutes)
 app.use(v1, relatorioRoutes)
 app.use(v1, documentoRoutes)
+app.use(v1, plataformaRoutes)
+app.use(v1, backupRoutes)
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date() }))
 
