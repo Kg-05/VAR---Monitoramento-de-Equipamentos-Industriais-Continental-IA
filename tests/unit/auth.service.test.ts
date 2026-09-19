@@ -12,6 +12,9 @@ vi.mock('@/shared/database/prisma.client', () => ({
     sessaoAtiva: {
       create: vi.fn(),
     },
+    log: {
+      create: vi.fn(),
+    },
   },
 }))
 

@@ -12,6 +12,7 @@ import {
 } from './usuario.schema'
 import {
   listarUsuarios,
+  listarOnline,
   buscarUsuario,
   criarUsuario,
   atualizarUsuario,
@@ -31,6 +32,7 @@ export const usuarioRoutes = Router()
 
 usuarioRoutes.use('/usuarios', autenticar)
 
+usuarioRoutes.get(   '/usuarios/online', autorizar(Papel.ADM, Papel.Operacional), listarOnline)
 usuarioRoutes.get(   '/usuarios',     autorizar(Papel.ADM, Papel.Operacional), listarUsuarios)
 usuarioRoutes.post(  '/usuarios',     autorizar(Papel.ADM, Papel.Operacional), validar(criarUsuarioSchema), criarUsuario)
 usuarioRoutes.get(   '/usuarios/:id', autorizar(Papel.ADM, Papel.Operacional), buscarUsuario)

@@ -159,6 +159,24 @@ export const UsuarioService = {
     return authenticator.check(codigo, usuario.totpSecret)
   },
 
+  async listarOnline() {
+    const limite = new Date(Date.now() - 15 * 60 * 1000)
+    const sessoes = await prisma.sessaoAtiva.findMany({
+      where: { revogadaEm: null, ultimoUso: { gte: limite } },
+      include: { usuario: { select: { id: true, nome: true, papel: true, status: true } } },
+      orderBy: { ultimoUso: 'desc' },
+    })
+
+    const vistos = new Set<string>()
+    const online: { id: string; nome: string; papel: string; ultimoUso: Date }[] = []
+    for (const s of sessoes) {
+      if (!s.usuario || s.usuario.status !== 'Ativo' || vistos.has(s.usuario.id)) continue
+      vistos.add(s.usuario.id)
+      online.push({ id: s.usuario.id, nome: s.usuario.nome, papel: s.usuario.papel, ultimoUso: s.ultimoUso })
+    }
+    return online
+  },
+
   async listarSessoes(usuarioId: string) {
     return prisma.sessaoAtiva.findMany({
       where:   { usuarioId, revogadaEm: null },

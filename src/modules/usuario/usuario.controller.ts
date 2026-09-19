@@ -7,6 +7,9 @@ import { ForbiddenError, UnauthorizedError } from '@/shared/errors/AppError'
 export async function listarUsuarios(req: Request, res: Response, next: NextFunction) {
   try { return paginado(res, await UsuarioService.listar(req.query)) } catch (e) { next(e) }
 }
+export async function listarOnline(req: Request, res: Response, next: NextFunction) {
+  try { return success(res, await UsuarioService.listarOnline()) } catch (e) { next(e) }
+}
 export async function buscarUsuario(req: Request, res: Response, next: NextFunction) {
   try { return success(res, await UsuarioService.buscarPorId(req.params.id)) } catch (e) { next(e) }
 }

@@ -32,6 +32,20 @@ async function emitirToken(usuario: { id: string; papel: string; empresaId: stri
     },
   })
 
+  try {
+    await prisma.log.create({
+      data: {
+        acao:         'LOGIN',
+        nivelUsuario: usuario.papel as any,
+        ip:           contexto.ip,
+        userAgent:    contexto.userAgent,
+        statusHttp:   200,
+        usuarioId:    usuario.id,
+        empresaId:    usuario.empresaId,
+      },
+    })
+  } catch { /* log nunca deve quebrar o login */ }
+
   return token
 }
 
