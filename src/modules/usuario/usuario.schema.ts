@@ -23,6 +23,11 @@ export const notificacaoEmailSchema = z.object({
   ativa: z.boolean(),
 })
 
+export const permissoesSchema = z.object({
+  permissaoAlertas: z.boolean().optional(),
+  permissaoGestao:  z.boolean().optional(),
+})
+
 export const ativarTotpSchema = z.object({
   segredo: z.string().min(1),
   codigo:  z.string().min(6).max(6),

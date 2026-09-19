@@ -71,11 +71,13 @@ export const AuthService = {
     return {
       token,
       usuario: {
-        id:        usuario.id,
-        nome:      usuario.nome,
-        email:     usuario.email,
-        papel:     usuario.papel,
-        empresaId: usuario.empresaId,
+        id:               usuario.id,
+        nome:             usuario.nome,
+        email:            usuario.email,
+        papel:            usuario.papel,
+        empresaId:        usuario.empresaId,
+        permissaoAlertas: usuario.permissaoAlertas,
+        permissaoGestao:  usuario.permissaoGestao,
       },
     }
   },
@@ -94,11 +96,13 @@ export const AuthService = {
     return {
       token,
       usuario: {
-        id:        usuario.id,
-        nome:      usuario.nome,
-        email:     usuario.email,
-        papel:     usuario.papel,
-        empresaId: usuario.empresaId,
+        id:               usuario.id,
+        nome:             usuario.nome,
+        email:            usuario.email,
+        papel:            usuario.papel,
+        empresaId:        usuario.empresaId,
+        permissaoAlertas: usuario.permissaoAlertas,
+        permissaoGestao:  usuario.permissaoGestao,
       },
     }
   },

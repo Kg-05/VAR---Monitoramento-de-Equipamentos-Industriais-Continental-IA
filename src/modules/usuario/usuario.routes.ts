@@ -8,6 +8,7 @@ import {
   atualizarUsuarioSchema,
   alterarSenhaSchema,
   notificacaoEmailSchema,
+  permissoesSchema,
   ativarTotpSchema,
 } from './usuario.schema'
 import {
@@ -20,6 +21,7 @@ import {
   alterarSenha,
   atualizarAvatar,
   definirNotificacaoEmail,
+  definirPermissoes,
   gerarSegredoTotp,
   ativarTotp,
   desativarTotp,
@@ -35,7 +37,10 @@ usuarioRoutes.use('/usuarios', autenticar)
 usuarioRoutes.get(   '/usuarios/online', autorizar(Papel.ADM, Papel.Operacional), listarOnline)
 usuarioRoutes.get(   '/usuarios',     autorizar(Papel.ADM, Papel.Operacional), listarUsuarios)
 usuarioRoutes.post(  '/usuarios',     autorizar(Papel.ADM, Papel.Operacional), validar(criarUsuarioSchema), criarUsuario)
-usuarioRoutes.get(   '/usuarios/:id', autorizar(Papel.ADM, Papel.Operacional), buscarUsuario)
+
+// Qualquer utilizador pode consultar o próprio registo (nome, preferências, etc.);
+// ADM/Operacional podem consultar qualquer um — a permissão é verificada no controller.
+usuarioRoutes.get(   '/usuarios/:id', buscarUsuario)
 
 // Qualquer utilizador pode actualizar o próprio perfil (nome/email);
 // ADM/Operacional podem actualizar qualquer utilizador — a permissão
@@ -48,6 +53,7 @@ usuarioRoutes.delete('/usuarios/:id', autorizar(Papel.ADM, Papel.Operacional), d
 usuarioRoutes.patch( '/usuarios/:id/senha',        validar(alterarSenhaSchema), alterarSenha)
 usuarioRoutes.patch( '/usuarios/:id/avatar',        uploadImagem.single('avatar'), atualizarAvatar)
 usuarioRoutes.patch( '/usuarios/:id/notificacao',   validar(notificacaoEmailSchema), definirNotificacaoEmail)
+usuarioRoutes.patch( '/usuarios/:id/permissoes',    validar(permissoesSchema), definirPermissoes)
 usuarioRoutes.post(  '/usuarios/:id/totp/gerar',    gerarSegredoTotp)
 usuarioRoutes.post(  '/usuarios/:id/totp/ativar',   validar(ativarTotpSchema), ativarTotp)
 usuarioRoutes.delete('/usuarios/:id/totp',          desativarTotp)

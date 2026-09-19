@@ -118,6 +118,8 @@ model Usuario {
   totpSecret            String?
   totpAtivo             Boolean @default(false)
   notificacaoEmailAtiva Boolean @default(true)
+  permissaoAlertas      Boolean @default(true)
+  permissaoGestao       Boolean @default(true)
 
   // FK opcional: ADM e Operacional não têm empresa
   empresaId String?

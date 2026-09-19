@@ -11,7 +11,12 @@ export async function listarOnline(req: Request, res: Response, next: NextFuncti
   try { return success(res, await UsuarioService.listarOnline()) } catch (e) { next(e) }
 }
 export async function buscarUsuario(req: Request, res: Response, next: NextFunction) {
-  try { return success(res, await UsuarioService.buscarPorId(req.params.id)) } catch (e) { next(e) }
+  try {
+    const ehStaff     = req.user?.papel === Papel.ADM || req.user?.papel === Papel.Operacional
+    const souOProprio = req.user?.id === req.params.id
+    if (!ehStaff && !souOProprio) throw new ForbiddenError('Sem permissão para consultar este usuário')
+    return success(res, await UsuarioService.buscarPorId(req.params.id))
+  } catch (e) { next(e) }
 }
 export async function criarUsuario(req: Request, res: Response, next: NextFunction) {
   try { return created(res, await UsuarioService.criar(req.body, req.user!.papel as Papel)) } catch (e) { next(e) }
@@ -58,6 +63,13 @@ export async function definirNotificacaoEmail(req: Request, res: Response, next:
   try {
     exigirProprio(req)
     return success(res, await UsuarioService.definirNotificacaoEmail(req.params.id, req.body.ativa))
+  } catch (e) { next(e) }
+}
+
+export async function definirPermissoes(req: Request, res: Response, next: NextFunction) {
+  try {
+    exigirProprio(req)
+    return success(res, await UsuarioService.definirPermissoes(req.params.id, req.body))
   } catch (e) { next(e) }
 }
 

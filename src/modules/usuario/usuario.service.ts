@@ -20,6 +20,8 @@ const selectSemSenha = {
   avatarUrl:             true,
   totpAtivo:             true,
   notificacaoEmailAtiva: true,
+  permissaoAlertas:      true,
+  permissaoGestao:       true,
   empresa:               { select: { id: true, nome: true } },
 } as const
 
@@ -124,6 +126,11 @@ export const UsuarioService = {
   async definirNotificacaoEmail(id: string, ativa: boolean) {
     await UsuarioService.buscarPorId(id)
     return prisma.usuario.update({ where: { id }, data: { notificacaoEmailAtiva: ativa }, select: selectSemSenha })
+  },
+
+  async definirPermissoes(id: string, dados: { permissaoAlertas?: boolean; permissaoGestao?: boolean }) {
+    await UsuarioService.buscarPorId(id)
+    return prisma.usuario.update({ where: { id }, data: dados, select: selectSemSenha })
   },
 
   async gerarSegredoTotp(id: string) {
