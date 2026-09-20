@@ -19,6 +19,12 @@ export const alterarSenhaSchema = z.object({
   novaSenha:  z.string().min(6),
 })
 
+// Usado por ADM/Operacional para repor a senha de outro usuário (ex: pedido
+// de recuperação de senha atendido manualmente) — não exige a senha atual.
+export const redefinirSenhaSchema = z.object({
+  novaSenha: z.string().min(6),
+})
+
 export const notificacaoEmailSchema = z.object({
   ativa: z.boolean(),
 })

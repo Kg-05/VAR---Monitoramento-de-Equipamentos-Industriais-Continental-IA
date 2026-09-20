@@ -192,7 +192,7 @@ describe('Empresa - Integration', () => {
       vi.spyOn(EmpresaService, 'criar').mockResolvedValue({
         id: EMPRESA_ID,
         nome: 'Empresa Nova',
-        cnpj: '12345678000199',
+        cnpj: '5417105938',
         email: 'empresa@teste.com',
       } as any)
 
@@ -203,7 +203,7 @@ describe('Empresa - Integration', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           nome: 'Empresa Nova',
-          cnpj: '12345678000199',
+          cnpj: '5417105938',
           email: 'empresa@teste.com',
           telefone: '923000000',
         })
@@ -211,7 +211,7 @@ describe('Empresa - Integration', () => {
       expect(response.status).toBe(201)
       expect(EmpresaService.criar).toHaveBeenCalledWith({
         nome: 'Empresa Nova',
-        cnpj: '12345678000199',
+        cnpj: '5417105938',
         email: 'empresa@teste.com',
         telefone: '923000000',
       })

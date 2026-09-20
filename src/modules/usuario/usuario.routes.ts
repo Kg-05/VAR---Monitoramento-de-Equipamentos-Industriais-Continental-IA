@@ -7,6 +7,7 @@ import {
   criarUsuarioSchema,
   atualizarUsuarioSchema,
   alterarSenhaSchema,
+  redefinirSenhaSchema,
   notificacaoEmailSchema,
   permissoesSchema,
   ativarTotpSchema,
@@ -19,6 +20,7 @@ import {
   atualizarUsuario,
   desativarUsuario,
   alterarSenha,
+  redefinirSenha,
   atualizarAvatar,
   definirNotificacaoEmail,
   definirPermissoes,
@@ -51,6 +53,12 @@ usuarioRoutes.delete('/usuarios/:id', autorizar(Papel.ADM, Papel.Operacional), d
 
 // Acções de conta — sempre restritas ao próprio utilizador (verificado no controller)
 usuarioRoutes.patch( '/usuarios/:id/senha',        validar(alterarSenhaSchema), alterarSenha)
+
+// Reset de senha feito por ADM/Operacional (ex: pedido de recuperação de
+// senha atendido manualmente, já que não há envio de emails) — não exige a
+// senha atual do utilizador-alvo. A restrição Operacional→só-Cliente é
+// verificada no controller.
+usuarioRoutes.patch( '/usuarios/:id/redefinir-senha', autorizar(Papel.ADM, Papel.Operacional), validar(redefinirSenhaSchema), redefinirSenha)
 usuarioRoutes.patch( '/usuarios/:id/avatar',        uploadImagem.single('avatar'), atualizarAvatar)
 usuarioRoutes.patch( '/usuarios/:id/notificacao',   validar(notificacaoEmailSchema), definirNotificacaoEmail)
 usuarioRoutes.patch( '/usuarios/:id/permissoes',    validar(permissoesSchema), definirPermissoes)

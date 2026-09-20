@@ -26,6 +26,11 @@ import { registrarLog } from '@/shared/middlewares/logger.middleware'
 
 const app = express()
 
+// Em produção corre atrás do proxy reverso do Railway, que define
+// X-Forwarded-For — sem isto o express-rate-limit rejeita esse cabeçalho
+// por não confiar na origem (ERR_ERL_UNEXPECTED_X_FORWARDED_FOR).
+app.set('trust proxy', 1)
+
 // Origens permitidas: as de desenvolvimento por omissão, mais o que vier
 // de CORS_ORIGINS (lista separada por vírgulas) em produção — assim o
 // domínio real do frontend pode ser adicionado só com uma env var, sem

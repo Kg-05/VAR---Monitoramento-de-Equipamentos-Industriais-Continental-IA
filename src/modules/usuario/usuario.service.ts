@@ -118,6 +118,17 @@ export const UsuarioService = {
     await prisma.usuario.update({ where: { id }, data: { senhaHash: await hashSenha(novaSenha) } })
   },
 
+  async redefinirSenha(id: string, novaSenha: string) {
+    await UsuarioService.buscarPorId(id)
+    await prisma.usuario.update({ where: { id }, data: { senhaHash: await hashSenha(novaSenha) } })
+    // Revoga todas as sessões ativas — a senha antiga deixou de ser válida,
+    // e qualquer sessão aberta com o token antigo deve terminar também.
+    await prisma.sessaoAtiva.updateMany({
+      where: { usuarioId: id, revogadaEm: null },
+      data:  { revogadaEm: new Date() },
+    })
+  },
+
   async atualizarAvatar(id: string, avatarUrl: string) {
     await UsuarioService.buscarPorId(id)
     return prisma.usuario.update({ where: { id }, data: { avatarUrl }, select: selectSemSenha })
