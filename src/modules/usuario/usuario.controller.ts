@@ -51,6 +51,17 @@ export async function alterarSenha(req: Request, res: Response, next: NextFuncti
   } catch (e) { next(e) }
 }
 
+export async function redefinirSenha(req: Request, res: Response, next: NextFunction) {
+  try {
+    const alvo = await UsuarioService.buscarPorId(req.params.id)
+    if (req.user?.papel === Papel.Operacional && alvo.papel !== Papel.Cliente) {
+      throw new ForbiddenError('Operacional só pode redefinir a senha de usuários Cliente')
+    }
+    await UsuarioService.redefinirSenha(req.params.id, req.body.novaSenha)
+    return success(res, { mensagem: 'Senha redefinida com sucesso' })
+  } catch (e) { next(e) }
+}
+
 export async function atualizarAvatar(req: Request, res: Response, next: NextFunction) {
   try {
     exigirProprio(req)
