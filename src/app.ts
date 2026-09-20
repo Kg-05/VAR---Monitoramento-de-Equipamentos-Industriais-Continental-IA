@@ -4,6 +4,7 @@
 import express from 'express'
 import path from 'path'
 import cors from 'cors';
+import helmet from 'helmet'
 import { empresaRoutes } from '@/modules/empresa/empresa.routes'
 import { usuarioRoutes } from '@/modules/usuario/usuario.routes'
 import { funcionarioRoutes} from '@/modules/funcionario/funcionario.routes'
@@ -15,6 +16,8 @@ import { relatorioRoutes } from '@/modules/relatorio/relatorio.routes'
 import { pagamentoRoutes } from '@/modules/pagamento/pagamento.routes'
 import { documentoRoutes } from '@/modules/documento/documento.routes'
 import { authRoutes } from '@/modules/auth/auth.routes'
+import { plataformaRoutes } from '@/modules/plataforma/plataforma.routes'
+import { backupRoutes } from '@/modules/backup/backup.routes'
 import { tratarErros } from '@/shared/middlewares/error.middleware'
 import { registrarLog } from '@/shared/middlewares/logger.middleware'
 
@@ -23,11 +26,20 @@ import { registrarLog } from '@/shared/middlewares/logger.middleware'
 
 const app = express()
 
+// Origens permitidas: as de desenvolvimento por omissão, mais o que vier
+// de CORS_ORIGINS (lista separada por vírgulas) em produção — assim o
+// domínio real do frontend pode ser adicionado só com uma env var, sem
+// precisar de alterar código nem voltar a fazer deploy do código-fonte.
+const origensPadrao = ['http://localhost:3000', 'https://var-kappa.vercel.app']
+const origensExtra  = (process.env.CORS_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean)
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}))
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://var-kappa.vercel.app',
-  ],
+  origin: [...origensPadrao, ...origensExtra],
   credentials: true,
 }))
 
@@ -49,6 +61,8 @@ app.use(v1, pagamentoRoutes)
 app.use(v1, logRoutes)
 app.use(v1, relatorioRoutes)
 app.use(v1, documentoRoutes)
+app.use(v1, plataformaRoutes)
+app.use(v1, backupRoutes)
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date() }))
 

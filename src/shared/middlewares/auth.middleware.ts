@@ -3,11 +3,13 @@ import { Request, Response, NextFunction } from 'express'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { UnauthorizedError } from '@/shared/errors/AppError'
 import { Papel } from '@/shared/types/enums'
+import { prisma } from '@/shared/database/prisma.client'
 
 type AuthPayload = JwtPayload & {
   id: string
   papel: Papel
   empresaId?: string | null
+  jti?: string
 }
 
 function isPapel(value: unknown): value is Papel {
@@ -33,7 +35,7 @@ function isValidAuthPayload(
   )
 }
 
-export function autenticar(
+export async function autenticar(
   req: Request,
   _res: Response,
   next: NextFunction
@@ -63,6 +65,14 @@ export function autenticar(
 
     if (!isValidAuthPayload(payload)) {
       return next(new UnauthorizedError('Token inválido'))
+    }
+
+    if (payload.jti) {
+      const sessao = await prisma.sessaoAtiva.findUnique({ where: { jti: payload.jti } })
+      if (!sessao || sessao.revogadaEm) {
+        return next(new UnauthorizedError('Sessão encerrada'))
+      }
+      prisma.sessaoAtiva.update({ where: { jti: payload.jti }, data: { ultimoUso: new Date() } }).catch(() => {})
     }
 
     req.user = {

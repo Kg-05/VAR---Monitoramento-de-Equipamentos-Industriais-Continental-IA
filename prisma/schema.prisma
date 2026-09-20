@@ -114,6 +114,13 @@ model Usuario {
   criadoEm  DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
+  avatarUrl             String?
+  totpSecret            String?
+  totpAtivo             Boolean @default(false)
+  notificacaoEmailAtiva Boolean @default(true)
+  permissaoAlertas      Boolean @default(true)
+  permissaoGestao       Boolean @default(true)
+
   // FK opcional: ADM e Operacional não têm empresa
   empresaId String?
   empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
@@ -122,10 +129,36 @@ model Usuario {
   logs               Log[]
   alertasLidos       Alerta[]    @relation("AlertaLidoPor")
   documentosEnviados Documento[]
+  sessoes            SessaoAtiva[]
 
   @@index([empresaId])
   @@index([papel])
   @@map("usuarios")
+}
+
+model SessaoAtiva {
+  id         String    @id @default(uuid())
+  jti        String    @unique
+  usuarioId  String
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  userAgent  String?
+  ip         String?
+  criadoEm   DateTime  @default(now())
+  ultimoUso  DateTime  @default(now())
+  revogadaEm DateTime?
+
+  @@index([usuarioId])
+  @@map("sessoes_ativas")
+}
+
+model PlataformaConfig {
+  id           String   @id @default("default")
+  nome         String   @default("Kituxi Tech")
+  logotipoUrl  String?
+  idioma       String   @default("pt-PT")
+  atualizadoEm DateTime @updatedAt
+
+  @@map("plataforma_config")
 }
 
 // =============================================================

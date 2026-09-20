@@ -1,9 +1,10 @@
 node_modules/
 dist/
 .env
-.env.example
 *.log
 .DS_Store
 coverage/
 uploads/documentos/*
 !uploads/documentos/.gitkeep
+uploads/imagens/*
+!uploads/imagens/.gitkeep
