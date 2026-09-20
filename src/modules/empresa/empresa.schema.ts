@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { nifAngolanoSchema, telefoneAngolanoSchema } from '@/shared/utils/validadoresAngola'
 
 export const criarEmpresaSchema = z.object({
   nome:     z.string().min(2),
-  cnpj:     z.string().min(14).max(18),
+  cnpj:     nifAngolanoSchema,
   email:    z.string().email(),
-  telefone: z.string().optional(),
+  telefone: telefoneAngolanoSchema.optional(),
 })
 
 export const atualizarEmpresaSchema = criarEmpresaSchema.partial().omit({ cnpj: true }).extend({
