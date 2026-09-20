@@ -4,7 +4,7 @@
   "description": "API de monitoramento de equipamentos industriais",
   "main": "dist/server.js",
   "_moduleAliases": {
-    "@": "src"
+    "@": "dist"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
