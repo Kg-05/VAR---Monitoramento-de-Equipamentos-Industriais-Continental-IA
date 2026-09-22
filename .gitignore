@@ -8,3 +8,5 @@ uploads/documentos/*
 !uploads/documentos/.gitkeep
 uploads/imagens/*
 !uploads/imagens/.gitkeep
+__pycache__/
+*.pyc

@@ -1,11 +1,17 @@
 import { z } from 'zod'
 
 export const criarUsuarioSchema = z.object({
-  email:     z.string().email(),
-  nome:      z.string().min(2),
-  senha:     z.string().min(6),
-  papel:     z.enum(['ADM', 'Operacional', 'Cliente']),
-  empresaId: z.string().uuid().optional(),
+  email:         z.string().email(),
+  nome:          z.string().min(2),
+  senha:         z.string().min(6),
+  papel:         z.enum(['ADM', 'Operacional', 'Cliente', 'Tecnico']),
+  empresaId:     z.string().uuid().optional(),
+  // Obrigatório quando papel = Tecnico — liga a conta a um Funcionario já
+  // cadastrado (a empresa é herdada do Funcionario, não deste campo).
+  funcionarioId: z.string().uuid().optional(),
+}).refine((data) => data.papel !== 'Tecnico' || !!data.funcionarioId, {
+  message: 'funcionarioId é obrigatório para usuários do tipo Tecnico',
+  path: ['funcionarioId'],
 })
 
 export const atualizarUsuarioSchema = z.object({

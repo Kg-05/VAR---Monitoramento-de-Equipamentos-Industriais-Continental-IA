@@ -49,6 +49,29 @@ async function emitirToken(usuario: { id: string; papel: string; empresaId: stri
   return token
 }
 
+// Técnico loga como Usuario normal, mas o app precisa do perfil do
+// Funcionario vinculado (cargo/telefone) logo após o login.
+async function montarRespostaUsuario(usuario: { id: string; nome: string; email: string; papel: string; empresaId: string | null; permissaoAlertas: boolean; permissaoGestao: boolean; funcionarioId: string | null }) {
+  const funcionario = usuario.funcionarioId
+    ? await prisma.funcionario.findUnique({
+        where:  { id: usuario.funcionarioId },
+        select: { id: true, cargo: true, telefone: true, status: true },
+      })
+    : null
+
+  return {
+    id:               usuario.id,
+    nome:             usuario.nome,
+    email:            usuario.email,
+    papel:            usuario.papel,
+    empresaId:        usuario.empresaId,
+    permissaoAlertas: usuario.permissaoAlertas,
+    permissaoGestao:  usuario.permissaoGestao,
+    funcionarioId:    usuario.funcionarioId,
+    funcionario,
+  }
+}
+
 export const AuthService = {
   async login(data: LoginDto, contexto: ContextoSessao = {}) {
     const usuario = await prisma.usuario.findUnique({ where: { email: data.email } })
@@ -70,15 +93,7 @@ export const AuthService = {
 
     return {
       token,
-      usuario: {
-        id:               usuario.id,
-        nome:             usuario.nome,
-        email:            usuario.email,
-        papel:            usuario.papel,
-        empresaId:        usuario.empresaId,
-        permissaoAlertas: usuario.permissaoAlertas,
-        permissaoGestao:  usuario.permissaoGestao,
-      },
+      usuario: await montarRespostaUsuario(usuario),
     }
   },
 
@@ -95,15 +110,7 @@ export const AuthService = {
 
     return {
       token,
-      usuario: {
-        id:               usuario.id,
-        nome:             usuario.nome,
-        email:            usuario.email,
-        papel:            usuario.papel,
-        empresaId:        usuario.empresaId,
-        permissaoAlertas: usuario.permissaoAlertas,
-        permissaoGestao:  usuario.permissaoGestao,
-      },
+      usuario: await montarRespostaUsuario(usuario),
     }
   },
 }

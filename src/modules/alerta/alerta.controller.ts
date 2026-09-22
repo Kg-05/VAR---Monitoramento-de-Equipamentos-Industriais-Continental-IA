@@ -14,6 +14,9 @@ export async function criarAlerta(req: Request, res: Response, next: NextFunctio
     return created(res, await AlertaService.criar({ ...req.body, empresaId }))
   } catch (e) { next(e) }
 }
+export async function atualizarAlerta(req: Request, res: Response, next: NextFunction) {
+  try { return success(res, await AlertaService.atualizar(req.params.id, req.body, req.user?.empresaId ?? undefined)) } catch (e) { next(e) }
+}
 export async function marcarAlertaLido(req: Request, res: Response, next: NextFunction) {
   try { return success(res, await AlertaService.marcarComoLido(req.params.id, req.user!.id, req.user?.empresaId ?? undefined)) } catch (e) { next(e) }
 }

@@ -23,6 +23,8 @@ const selectSemSenha = {
   permissaoAlertas:      true,
   permissaoGestao:       true,
   empresa:               { select: { id: true, nome: true } },
+  funcionarioId:         true,
+  funcionario:           { select: { id: true, cargo: true, telefone: true, status: true } },
 } as const
 
 export const UsuarioService = {
@@ -60,9 +62,13 @@ export const UsuarioService = {
     return u
   },
 
-  async criar(data: { email: string; nome: string; senha: string; papel: Papel; empresaId?: string }, solicitantePapel: string) {
-    if (solicitantePapel === Papel.Operacional && data.papel !== Papel.Cliente) {
-      throw new ForbiddenError('Operacional só pode criar usuários do tipo Cliente')
+  async criar(
+    data: { email: string; nome: string; senha: string; papel: Papel; empresaId?: string; funcionarioId?: string },
+    solicitantePapel: string,
+  ) {
+    const papeisPermitidosOperacional: Papel[] = [Papel.Cliente, Papel.Tecnico]
+    if (solicitantePapel === Papel.Operacional && !papeisPermitidosOperacional.includes(data.papel)) {
+      throw new ForbiddenError('Operacional só pode criar usuários do tipo Cliente ou Tecnico')
     }
     if (data.papel === Papel.Cliente && !data.empresaId) {
       throw new ConflictError('Usuário Cliente precisa de empresa vinculada')
@@ -70,12 +76,25 @@ export const UsuarioService = {
     if (await prisma.usuario.findUnique({ where: { email: data.email } })) {
       throw new ConflictError('Email já cadastrado')
     }
-    if (data.empresaId && !await prisma.empresa.findUnique({ where: { id: data.empresaId } })) {
+
+    // Tecnico não recebe empresaId diretamente — herda-o do Funcionario ao
+    // qual a conta está a ser ligada, para nunca ficarem dessincronizados.
+    let empresaId = data.empresaId
+    if (data.papel === Papel.Tecnico) {
+      const funcionario = await prisma.funcionario.findUnique({ where: { id: data.funcionarioId! } })
+      if (!funcionario) throw new NotFoundError('Funcionário não encontrado')
+      if (await prisma.usuario.findUnique({ where: { funcionarioId: data.funcionarioId! } })) {
+        throw new ConflictError('Este funcionário já tem uma conta de acesso')
+      }
+      empresaId = funcionario.empresaId
+    }
+
+    if (empresaId && !await prisma.empresa.findUnique({ where: { id: empresaId } })) {
       throw new NotFoundError('Empresa não encontrada')
     }
     const { senha, ...resto } = data
     return prisma.usuario.create({
-      data:   { ...resto, senhaHash: await hashSenha(senha) },
+      data:   { ...resto, empresaId, senhaHash: await hashSenha(senha) },
       select: selectSemSenha,
     })
   },

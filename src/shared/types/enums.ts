@@ -2,6 +2,7 @@ export enum Papel {
   ADM         = 'ADM',
   Operacional = 'Operacional',
   Cliente     = 'Cliente',
+  Tecnico     = 'Tecnico',
 }
 
 export enum NivelAlerta {
