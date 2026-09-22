@@ -36,6 +36,9 @@ const mockUsuario = {
   papel: Papel.Cliente,
   empresaId: 'empresa-uuid-001',
   status: 'Ativo',
+  permissaoAlertas: true,
+  permissaoGestao: true,
+  funcionarioId: null,
 }
 
 describe('AuthService', () => {
@@ -69,6 +72,10 @@ describe('AuthService', () => {
         email: mockUsuario.email,
         papel: mockUsuario.papel,
         empresaId: mockUsuario.empresaId,
+        permissaoAlertas: mockUsuario.permissaoAlertas,
+        permissaoGestao: mockUsuario.permissaoGestao,
+        funcionarioId: mockUsuario.funcionarioId,
+        funcionario: null,
       })
     })
 

@@ -1,5 +1,5 @@
 // src/modules/alerta/alerta.service.ts
-import { NivelAlerta } from '@prisma/client'
+import { NivelAlerta, StatusAlerta } from '@prisma/client'
 import { prisma }                   from '@/shared/database/prisma.client'
 import { NotFoundError, ConflictError } from '@/shared/errors/AppError'
 import { parsePagination, paginar }     from '@/shared/utils/page'
@@ -58,6 +58,22 @@ export const AlertaService = {
     return prisma.alerta.create({
       data,
       include: { equipamento: { select: { id: true, nome: true, localizacao: true } } },
+    })
+  },
+
+  // Permite ao Técnico (ou ADM/Operacional) redefinir o nível, mudar o
+  // status do tratamento (ex: pedir apoio) e deixar uma nota — o
+  // escopoEmpresa já garante que Cliente/Tecnico só alteram alertas da
+  // própria empresa (buscarPorId lança NotFoundError se não pertencer).
+  async atualizar(id: string, data: { nivel?: NivelAlerta; status?: StatusAlerta; notaTecnico?: string }, empresaId?: string) {
+    await AlertaService.buscarPorId(id, empresaId)
+    return prisma.alerta.update({
+      where:   { id },
+      data,
+      include: {
+        equipamento: { select: { id: true, nome: true, localizacao: true } },
+        lidoPor:     { select: { id: true, nome: true } },
+      },
     })
   },
 

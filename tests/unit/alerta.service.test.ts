@@ -102,6 +102,45 @@ describe('AlertaService', () => {
     })
   })
 
+  // ── atualizar ──────────────────────────────────────────────
+
+  describe('atualizar', () => {
+    it('atualiza nivel, status e notaTecnico do alerta', async () => {
+      vi.mocked(prisma.alerta.findUnique).mockResolvedValue(mockAlerta as any)
+      vi.mocked(prisma.alerta.update).mockResolvedValue({
+        ...mockAlerta,
+        nivel:       'medio',
+        status:      'AguardaApoio',
+        notaTecnico: 'Aguardando peça de reposição',
+      } as any)
+
+      const resultado = await AlertaService.atualizar(
+        'alerta-uuid-001',
+        { nivel: 'medio' as any, status: 'AguardaApoio' as any, notaTecnico: 'Aguardando peça de reposição' },
+        'empresa-uuid-001',
+      )
+
+      expect(prisma.alerta.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'alerta-uuid-001' },
+          data:  { nivel: 'medio', status: 'AguardaApoio', notaTecnico: 'Aguardando peça de reposição' },
+        })
+      )
+      expect(resultado.status).toBe('AguardaApoio')
+    })
+
+    it('lança NotFoundError quando empresaId não coincide (multi-tenant)', async () => {
+      vi.mocked(prisma.alerta.findUnique).mockResolvedValue({
+        ...mockAlerta,
+        empresaId: 'outra-empresa',
+      } as any)
+
+      await expect(
+        AlertaService.atualizar('alerta-uuid-001', { status: 'EmCurso' as any }, 'empresa-uuid-001')
+      ).rejects.toThrow(NotFoundError)
+    })
+  })
+
   // ── marcarComoLido ─────────────────────────────────────────
 
   describe('marcarComoLido', () => {

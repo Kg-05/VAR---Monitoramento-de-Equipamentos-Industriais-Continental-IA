@@ -20,6 +20,7 @@ enum Papel {
   ADM
   Operacional
   Cliente
+  Tecnico
 }
 
 enum StatusUsuario {
@@ -42,6 +43,13 @@ enum NivelAlerta {
   razoavel
   medio
   critico
+}
+
+enum StatusAlerta {
+  Aberto
+  EmCurso
+  AguardaApoio
+  Resolvido
 }
 
 enum PlanoLicenca {
@@ -125,6 +133,12 @@ model Usuario {
   empresaId String?
   empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
 
+  // FK opcional: só usuários Tecnico estão ligados a um Funcionario
+  // (dá acesso à app a um Funcionario já cadastrado, sem duplicar dados
+  // de perfil — cargo/telefone continuam só no Funcionario).
+  funcionarioId String?      @unique
+  funcionario   Funcionario? @relation(fields: [funcionarioId], references: [id], onDelete: SetNull)
+
   // Relações
   logs               Log[]
   alertasLidos       Alerta[]    @relation("AlertaLidoPor")
@@ -180,6 +194,10 @@ model Funcionario {
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
+  // Conta de acesso à app (papel Tecnico) — opcional, nem todo
+  // Funcionario tem login.
+  usuario Usuario?
+
   @@unique([email, empresaId])
   @@index([empresaId])
   @@index([status])
@@ -223,12 +241,14 @@ model Equipamento {
 // =============================================================
 
 model Alerta {
-  id        String      @id @default(uuid())
-  descricao String
-  nivel     NivelAlerta
-  lidoEm   DateTime?
-  criadoEm  DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id          String       @id @default(uuid())
+  descricao   String
+  nivel       NivelAlerta
+  status      StatusAlerta @default(Aberto)
+  notaTecnico String?
+  lidoEm      DateTime?
+  criadoEm    DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   empresaId    String
   empresa      Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
@@ -243,6 +263,7 @@ model Alerta {
   @@index([empresaId])
   @@index([equipamentoId])
   @@index([nivel])
+  @@index([status])
   @@index([lidoPorId])
   @@index([criadoEm])
   @@map("alertas")

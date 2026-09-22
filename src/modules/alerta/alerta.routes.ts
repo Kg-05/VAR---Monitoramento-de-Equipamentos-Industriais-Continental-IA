@@ -6,12 +6,13 @@ import { autorizar } from '@/shared/middlewares/roles.middleware'
 import { validar } from '@/shared/middlewares/validate.middleware'
 import { escopoEmpresa } from '@/shared/middlewares/tenant.middleware'
 
-import { criarAlertaSchema } from './alerta.schema'
+import { criarAlertaSchema, atualizarAlertaSchema } from './alerta.schema'
 
 import {
   listarAlertas,
   buscarAlerta,
   criarAlerta,
+  atualizarAlerta,
   marcarAlertaLido,
   removerAlerta,
   resumoAlertas,
@@ -51,6 +52,12 @@ alertaRoutes.post(
 alertaRoutes.get(
   '/alertas/:id',
   buscarAlerta,
+)
+
+alertaRoutes.patch(
+  '/alertas/:id',
+  validar(atualizarAlertaSchema),
+  atualizarAlerta,
 )
 
 alertaRoutes.patch(
