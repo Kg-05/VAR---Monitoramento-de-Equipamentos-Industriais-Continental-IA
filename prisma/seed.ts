@@ -679,6 +679,35 @@ async function main() {
   console.log()
 
   // -----------------------------------------------------------
+  // TÉCNICOS — contas de acesso (papel Tecnico) para testar o app
+  // mobile, ligadas a Funcionarios já cadastrados na Sonangol.
+  // -----------------------------------------------------------
+  console.log('🔧 Criando contas de Técnico para testes no app mobile...')
+
+  const SENHA_TECNICO = 'Tecnico@123'
+
+  const tecnicosSpec = [
+    'a.sebastiao@sonangol-refinaria.ao', // António Sebastião — Engenheiro de Manutenção
+    'm.conceicao@sonangol-refinaria.ao', // Maria da Conceição — Técnica de Instrumentação
+  ]
+
+  const tecnicos = []
+  for (const email of tecnicosSpec) {
+    const funcionario = await prisma.funcionario.findFirstOrThrow({ where: { email } })
+    tecnicos.push(await prisma.usuario.create({
+      data: {
+        email:         funcionario.email,
+        nome:          funcionario.nome,
+        senhaHash:     await hashSenha(SENHA_TECNICO),
+        papel:         Papel.Tecnico,
+        empresaId:     funcionario.empresaId,
+        funcionarioId: funcionario.id,
+      },
+    }))
+  }
+  console.log(`   ✓ ${tecnicos.map((t) => t.nome).join(', ')} (Tecnico)\n`)
+
+  // -----------------------------------------------------------
   // LOGS
   // -----------------------------------------------------------
   console.log('📜 Gerando histórico de logs (últimos 14 dias)...')
@@ -739,7 +768,7 @@ async function main() {
   console.log('✅  Seed concluído com sucesso!')
   console.log('═══════════════════════════════════════')
   console.log(`   Empresas:     ${totais[0]}`)
-  console.log(`   Usuários:     ${totais[1]}  (2 ADM · 3 Operacional · ${empresasSpec.length} Clientes)`)
+  console.log(`   Usuários:     ${totais[1]}  (2 ADM · 3 Operacional · ${empresasSpec.length} Clientes · ${tecnicos.length} Tecnico)`)
   console.log(`   Funcionários: ${totais[2]}`)
   console.log(`   Equipamentos: ${totais[3]}`)
   console.log(`   Alertas:      ${totais[4]}`)
@@ -757,6 +786,9 @@ async function main() {
   console.log('   Operacional  → celia.santos@sistema.ao        / Oper@123')
   for (const spec of empresasSpec) {
     console.log(`   Cliente      → ${spec.clienteEmail.padEnd(30)} / ${SENHA_PADRAO}  (${spec.nome})`)
+  }
+  for (const t of tecnicos) {
+    console.log(`   Tecnico      → ${t.email.padEnd(30)} / ${SENHA_TECNICO}  (${t.nome})`)
   }
   console.log()
 }
