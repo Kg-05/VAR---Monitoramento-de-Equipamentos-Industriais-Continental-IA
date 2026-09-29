@@ -10,6 +10,7 @@ import { Papel } from '../../src/shared/types/enums'
 vi.mock('../../src/modules/equipamento/equipamento.service', () => ({
   EquipamentoService: {
     listar: vi.fn(),
+    resumo: vi.fn(),
     buscarPorId: vi.fn(),
     criar: vi.fn(),
     atualizar: vi.fn(),
@@ -200,6 +201,26 @@ describe('Equipamento - Integration', () => {
         EMP_TAAG,
         undefined,
       )
+    })
+  })
+
+  describe('GET /api/v1/equipamentos/resumo', () => {
+    it('retorna o resumo de equipamentos da empresa do cliente', async () => {
+      vi.mocked(EquipamentoService.resumo).mockResolvedValue({
+        total: 10,
+        operacional: 8,
+        manutencao: 2,
+        comAlertasPorResolver: 3,
+      })
+
+      const response = await request(app)
+        .get('/api/v1/equipamentos/resumo')
+        .set('Authorization', `Bearer ${tokenClienteTaag}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.success).toBe(true)
+
+      expect(EquipamentoService.resumo).toHaveBeenCalledWith(EMP_TAAG, undefined)
     })
   })
 

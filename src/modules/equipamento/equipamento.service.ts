@@ -43,6 +43,22 @@ export const EquipamentoService = {
     return paginar(equipamentos, total, pagination)
   },
 
+  async resumo(empresaId?: string, funcionarioId?: string) {
+    const where: Prisma.EquipamentoWhereInput = {
+      ...(empresaId && { empresaId }),
+      ...(funcionarioId && { funcionariosDestacados: { some: { funcionarioId } } }),
+    }
+
+    const [total, operacional, manutencao, comAlertasPorResolver] = await prisma.$transaction([
+      prisma.equipamento.count({ where }),
+      prisma.equipamento.count({ where: { ...where, status: StatusEquipamento.Operacional } }),
+      prisma.equipamento.count({ where: { ...where, status: StatusEquipamento.Manutencao } }),
+      prisma.equipamento.count({ where: { ...where, alertas: { some: { lidoEm: null } } } }),
+    ])
+
+    return { total, operacional, manutencao, comAlertasPorResolver }
+  },
+
   async buscarPorId(id: string, empresaId?: string, funcionarioId?: string) {
     const equipamento = await prisma.equipamento.findUnique({
       where:   { id },

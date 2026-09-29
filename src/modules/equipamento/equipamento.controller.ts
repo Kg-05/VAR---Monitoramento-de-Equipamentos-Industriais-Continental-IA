@@ -8,6 +8,12 @@ export async function listarEquipamentos(req: Request, res: Response, next: Next
   } catch (e) { next(e) }
 }
 
+export async function resumoEquipamentos(req: Request, res: Response, next: NextFunction) {
+  try {
+    return success(res, await EquipamentoService.resumo(req.user?.empresaId ?? undefined, req.user?.funcionarioId ?? undefined))
+  } catch (e) { next(e) }
+}
+
 export async function buscarEquipamento(req: Request, res: Response, next: NextFunction) {
   try {
     return success(res, await EquipamentoService.buscarPorId(
