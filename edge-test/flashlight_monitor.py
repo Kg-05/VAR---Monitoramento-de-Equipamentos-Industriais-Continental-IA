@@ -6,11 +6,16 @@ fixa da imagem (ROI), com calibração automática e debounce.
 
 Fluxo:
   1. Login no VAR (obtém JWT).
-  2. Calibra o brilho "ambiente" (lanterna apagada) durante alguns segundos.
-  3. Por cada frame, mede o brilho médio dentro da ROI e compara com a
+  2. Pede o Nome da Empresa e o ID do Equipamento a monitorizar, e
+     confirma contra a API que o equipamento pertence mesmo a essa
+     empresa antes de começar (evita enviar alertas para o par errado).
+  3. Calibra o brilho "ambiente" (lanterna apagada) durante alguns segundos.
+  4. Por cada frame, mede o brilho médio dentro da ROI e compara com a
      calibração. Ao detetar transição apagado -> aceso, sustentada por
      alguns frames seguidos (evita falso positivo por reflexo/flicker),
-     envia um alerta para POST /api/v1/alertas.
+     envia um alerta para POST /api/v1/alertas — o nível escala com o
+     número de deteções nesta sessão: 1-2 = razoavel, 3-5 = medio,
+     6+ = critico.
 
 Uso:
     python -m venv .venv && .venv\\Scripts\\activate   (Windows)
@@ -34,10 +39,9 @@ API_URL = "https://var-mvp-continental.up.railway.app/api/v1"  # ou http://local
 LOGIN_EMAIL = "operacional@sistema.ao"
 LOGIN_SENHA = "Oper@123"
 
-# IDs do equipamento/empresa de teste (cria-os primeiro pela interface do VAR
-# — ver README) — o alerta fica associado a este par.
-EQUIPAMENTO_ID = "COLOCA-AQUI-O-UUID-DO-EQUIPAMENTO"
-EMPRESA_ID     = "COLOCA-AQUI-O-UUID-DA-EMPRESA"
+# Empresa e equipamento já não são fixos aqui — o script pergunta-os no
+# arranque (nome da empresa + ID do equipamento) e confirma contra a API
+# que o equipamento pertence mesmo a essa empresa. Ver escolher_equipamento().
 
 CAMERA_INDEX = 0  # 0 = webcam padrão do portátil
 
@@ -49,8 +53,21 @@ LIMIAR_DELTA       = 60   # quanto o brilho médio tem de subir acima da calibra
 FRAMES_CONFIRMACAO = 5    # frames seguidos acima do limiar antes de confirmar a transição (debounce)
 COOLDOWN_SEGUNDOS  = 15   # tempo mínimo entre alertas enviados, mesmo que continue aceso/apagado a piscar
 
-NIVEL_ALERTA = "critico"  # razoavel | medio | critico
+# Nível do alerta escala com o número de deteções confirmadas nesta sessão
+# (não é fixo) — reflete uma anomalia que se repete como mais grave do que
+# uma ocorrência isolada.
+LIMIAR_NIVEL_MEDIO   = 3  # a partir da 3ª deteção
+LIMIAR_NIVEL_CRITICO = 6  # a partir da 6ª deteção
+
 DESCRICAO_ALERTA = "Anomalia detetada pelo sensor de câmara (teste MVP — lanterna)"
+
+
+def nivel_por_contagem(contagem: int) -> str:
+    if contagem >= LIMIAR_NIVEL_CRITICO:
+        return "critico"
+    if contagem >= LIMIAR_NIVEL_MEDIO:
+        return "medio"
+    return "razoavel"
 
 
 # ── Estado ────────────────────────────────────────────────────────────────
@@ -63,6 +80,7 @@ class Estado:
     frames_acima: int = 0
     frames_abaixo: int = 0
     ultimo_alerta_em: float = 0.0
+    total_deteccoes: int = 0  # nº de alertas confirmados enviados nesta sessão
 
 
 def obter_token() -> str:
@@ -74,13 +92,57 @@ def obter_token() -> str:
     return dados["token"]
 
 
-def enviar_alerta(token: str, descricao: str, nivel: str) -> None:
+def escolher_equipamento(token: str) -> tuple[str, str, str]:
+    """Pede o Nome da Empresa e o ID do Equipamento, e confirma contra a
+    API que o equipamento pertence mesmo a essa empresa antes de começar
+    — evita enviar alertas para o par empresa/equipamento errado.
+    Devolve (equipamento_id, empresa_id, equipamento_nome)."""
+    headers = {"Authorization": f"Bearer {token}"}
+
+    nome_empresa = input("Nome da empresa: ").strip()
+    if not nome_empresa:
+        raise RuntimeError("Nome da empresa não pode ficar vazio.")
+
+    resp = requests.get(f"{API_URL}/empresas", params={"search": nome_empresa, "limit": 5}, headers=headers, timeout=10)
+    resp.raise_for_status()
+    empresas = resp.json()["data"]
+    if not empresas:
+        raise RuntimeError(f"Nenhuma empresa encontrada com o nome '{nome_empresa}'.")
+    if len(empresas) > 1:
+        print("Mais do que uma empresa encontrada:")
+        for e in empresas:
+            print(f"  - {e['nome']}  (id: {e['id']})")
+        raise RuntimeError("Sê mais específico no nome da empresa e corre o script outra vez.")
+    empresa = empresas[0]
+    print(f"Empresa: {empresa['nome']} (id: {empresa['id']})")
+
+    equipamento_id = input("ID (UUID) do equipamento a monitorizar: ").strip()
+    if not equipamento_id:
+        raise RuntimeError("ID do equipamento não pode ficar vazio.")
+
+    resp = requests.get(f"{API_URL}/equipamentos/{equipamento_id}", headers=headers, timeout=10)
+    if resp.status_code == 404:
+        raise RuntimeError(f"Equipamento '{equipamento_id}' não encontrado.")
+    resp.raise_for_status()
+    equipamento = resp.json()["data"]
+
+    if equipamento["empresa"]["id"] != empresa["id"]:
+        raise RuntimeError(
+            f"O equipamento '{equipamento['nome']}' pertence a '{equipamento['empresa']['nome']}', "
+            f"não a '{empresa['nome']}'. Confirma o ID."
+        )
+
+    print(f"Equipamento: {equipamento['nome']} (id: {equipamento['id']}) — confirmado.")
+    return equipamento["id"], empresa["id"], equipamento["nome"]
+
+
+def enviar_alerta(token: str, equipamento_id: str, empresa_id: str, descricao: str, nivel: str) -> None:
     try:
         resp = requests.post(
             f"{API_URL}/alertas",
             json={
-                "equipamentoId": EQUIPAMENTO_ID,
-                "empresaId":     EMPRESA_ID,
+                "equipamentoId": equipamento_id,
+                "empresaId":     empresa_id,
                 "descricao":     descricao,
                 "nivel":         nivel,
             },
@@ -104,6 +166,8 @@ def main() -> None:
     print("A autenticar no VAR...")
     token = obter_token()
     print("Autenticado.")
+
+    equipamento_id, empresa_id, equipamento_nome = escolher_equipamento(token)
 
     # No Windows, CAP_DSHOW evita atrasos/frames pretos ao abrir a webcam.
     backend = cv2.CAP_DSHOW if sys.platform.startswith("win") else cv2.CAP_ANY
@@ -154,7 +218,10 @@ def main() -> None:
         if not estado.aceso and estado.frames_acima >= FRAMES_CONFIRMACAO:
             estado.aceso = True
             if not em_cooldown:
-                enviar_alerta(token, DESCRICAO_ALERTA, NIVEL_ALERTA)
+                estado.total_deteccoes += 1
+                nivel = nivel_por_contagem(estado.total_deteccoes)
+                descricao = f"{DESCRICAO_ALERTA} — deteção nº{estado.total_deteccoes} em {equipamento_nome}"
+                enviar_alerta(token, equipamento_id, empresa_id, descricao, nivel)
                 estado.ultimo_alerta_em = agora
 
         # Transição aceso -> apagado, confirmada (só atualiza estado local, sem novo alerta)
@@ -163,8 +230,12 @@ def main() -> None:
             print("[INFO] Sinal voltou ao normal.")
 
         cor_status = (0, 0, 255) if estado.aceso else (0, 255, 0)
-        texto = f"Brilho: {brilho:.0f} (base {estado.baseline:.0f})  Estado: {'ALERTA' if estado.aceso else 'normal'}"
-        cv2.putText(frame, texto, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, cor_status, 2)
+        texto = (
+            f"Brilho: {brilho:.0f} (base {estado.baseline:.0f})  "
+            f"Estado: {'ALERTA' if estado.aceso else 'normal'}  "
+            f"Deteções: {estado.total_deteccoes} ({nivel_por_contagem(estado.total_deteccoes) if estado.total_deteccoes else '-'})"
+        )
+        cv2.putText(frame, texto, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, cor_status, 2)
         cv2.imshow("VAR - teste (lanterna)", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):

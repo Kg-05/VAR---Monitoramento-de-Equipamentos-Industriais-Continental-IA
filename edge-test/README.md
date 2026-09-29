@@ -20,10 +20,11 @@ Entra no VAR como ADM ou Operacional e:
 
 ## 3. Configurar o script
 
-Abre `flashlight_monitor.py` e edita:
+Abre `flashlight_monitor.py` e edita só:
 - `API_URL` — o domínio do backend (Railway em produção, ou `http://localhost:3333/api/v1` se estiveres a testar contra o backend local).
 - `LOGIN_EMAIL` / `LOGIN_SENHA` — usa uma conta Operacional ou ADM sem 2FA ativo (as do seed servem: `operacional@sistema.ao` / `Oper@123`).
-- `EQUIPAMENTO_ID` / `EMPRESA_ID` — os que copiaste no passo 2.
+
+Já não precisas de editar `EQUIPAMENTO_ID`/`EMPRESA_ID` no ficheiro — o script pergunta-os no arranque (ver passo 4).
 
 ## 4. Correr e calibrar
 
@@ -31,9 +32,11 @@ Abre `flashlight_monitor.py` e edita:
 python flashlight_monitor.py
 ```
 
+- Pede o **Nome da empresa** (o do passo 2) e o **ID do equipamento**. Confirma contra a API que o equipamento pertence mesmo a essa empresa antes de continuar — se não pertencer, ou se o nome da empresa não corresponder a nenhuma, o script pára com uma mensagem clara.
 - Abre uma janela com a imagem da webcam e um retângulo verde (a ROI).
 - Nos primeiros 3 segundos, **mantém a lanterna apagada** e o telemóvel fora da ROI ou virado para baixo — é a calibração do brilho ambiente.
 - Depois disso, posiciona o telemóvel com a lanterna apontada para dentro do retângulo verde e acende-a — ao fim de alguns frames (± meio segundo) deve aparecer "ALERTA" no ecrã e o pedido `POST /alertas` é enviado. Confirma no dashboard do VAR (Operacional → Gerir Alertas, ou Cliente → Alertas da empresa escolhida).
+- O **nível do alerta escala com o número de deteções** nesta sessão (visível no overlay do vídeo): 1ª e 2ª deteção = `razoavel`, 3ª a 5ª = `medio`, a partir da 6ª = `critico`. Ajustável em `LIMIAR_NIVEL_MEDIO`/`LIMIAR_NIVEL_CRITICO`.
 - Prime `q` para sair.
 
 ## 5. Afinar se necessário
