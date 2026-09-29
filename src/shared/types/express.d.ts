@@ -12,6 +12,9 @@ declare global {
         id: string
         papel: Papel
         empresaId: string | null
+        // Só definido para Usuario papel Tecnico — id do Funcionario
+        // vinculado, usado para restringir aos equipamentos destacados.
+        funcionarioId?: string | null
       }
     }
   }

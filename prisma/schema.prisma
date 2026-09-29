@@ -144,6 +144,7 @@ model Usuario {
   alertasLidos       Alerta[]    @relation("AlertaLidoPor")
   documentosEnviados Documento[]
   sessoes            SessaoAtiva[]
+  destaquesFeitos    EquipamentoDestacado[] @relation("DestacadoPor")
 
   @@index([empresaId])
   @@index([papel])
@@ -198,6 +199,10 @@ model Funcionario {
   // Funcionario tem login.
   usuario Usuario?
 
+  // Equipamentos destacados a este Funcionario para monitorar (só tem
+  // efeito prático quando ele tem conta Tecnico — ver EquipamentoDestacado).
+  equipamentosDestacados EquipamentoDestacado[]
+
   @@unique([email, empresaId])
   @@index([empresaId])
   @@index([status])
@@ -226,11 +231,42 @@ model Equipamento {
 
   // Relações
   alertas Alerta[]
+  funcionariosDestacados EquipamentoDestacado[]
 
   @@unique([numeroSerie, empresaId])
   @@index([empresaId])
   @@index([status])
   @@map("equipamentos")
+}
+
+// =============================================================
+// EQUIPAMENTO_DESTACADO
+// Liga um Funcionario a um Equipamento que lhe foi destacado para
+// monitorar. Um Técnico (Usuario com papel Tecnico) só vê/trata
+// alertas dos equipamentos destacados ao seu Funcionario — ver
+// escopoEquipamentoTecnico. ADM/Operacional/Cliente continuam a
+// ver tudo, sem esta restrição.
+// =============================================================
+
+model EquipamentoDestacado {
+  id            String   @id @default(uuid())
+  criadoEm      DateTime @default(now())
+
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  equipamentoId String
+  equipamento   Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade)
+
+  // Quem fez o destaque (ADM/Operacional/Cliente) — opcional, null se o
+  // usuário responsável for depois removido.
+  destacadoPorId String?
+  destacadoPor   Usuario? @relation("DestacadoPor", fields: [destacadoPorId], references: [id], onDelete: SetNull)
+
+  @@unique([funcionarioId, equipamentoId])
+  @@index([funcionarioId])
+  @@index([equipamentoId])
+  @@map("equipamentos_destacados")
 }
 
 // =============================================================
