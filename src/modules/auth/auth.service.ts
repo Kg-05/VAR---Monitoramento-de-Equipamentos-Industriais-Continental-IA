@@ -10,12 +10,15 @@ interface ContextoSessao {
   ip?: string
 }
 
-async function emitirToken(usuario: { id: string; papel: string; empresaId: string | null }, contexto: ContextoSessao) {
+async function emitirToken(usuario: { id: string; papel: string; empresaId: string | null; funcionarioId?: string | null }, contexto: ContextoSessao) {
   const jti = randomUUID()
   const payload = {
-    id:        usuario.id,
-    papel:     usuario.papel,
-    empresaId: usuario.empresaId,
+    id:            usuario.id,
+    papel:         usuario.papel,
+    empresaId:     usuario.empresaId,
+    // Só usuários Tecnico têm isto — permite aplicar o escopo de
+    // equipamentos destacados sem consultar a BD em cada pedido.
+    funcionarioId: usuario.funcionarioId ?? undefined,
     jti,
   }
 

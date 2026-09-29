@@ -115,6 +115,7 @@ describe('Equipamento - Integration', () => {
         expect.objectContaining({
           empresaId: EMP_TAAG,
         }),
+        undefined,
       )
     })
 
@@ -142,6 +143,7 @@ describe('Equipamento - Integration', () => {
         expect.objectContaining({
           empresaId: EMP_TAAG,
         }),
+        undefined,
       )
 
       expect(EquipamentoService.listar).not.toHaveBeenCalledWith(
@@ -173,6 +175,7 @@ describe('Equipamento - Integration', () => {
       expect(EquipamentoService.buscarPorId).toHaveBeenCalledWith(
         'equip-taag-1',
         EMP_TAAG,
+        undefined,
       )
     })
 
@@ -195,6 +198,7 @@ describe('Equipamento - Integration', () => {
       expect(EquipamentoService.buscarPorId).toHaveBeenCalledWith(
         'equip-sonangol-1',
         EMP_TAAG,
+        undefined,
       )
     })
   })

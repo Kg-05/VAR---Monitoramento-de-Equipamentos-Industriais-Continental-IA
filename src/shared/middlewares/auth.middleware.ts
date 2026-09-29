@@ -9,6 +9,7 @@ type AuthPayload = JwtPayload & {
   id: string
   papel: Papel
   empresaId?: string | null
+  funcionarioId?: string | null
   jti?: string
 }
 
@@ -79,6 +80,7 @@ export async function autenticar(
       id: payload.id,
       papel: payload.papel,
       empresaId: payload.empresaId ?? null,
+      funcionarioId: payload.funcionarioId ?? null,
     }
 
     next()

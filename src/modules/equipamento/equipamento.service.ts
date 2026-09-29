@@ -5,7 +5,11 @@ import { parsePagination, paginar }     from '@/shared/utils/page'
 
 export const EquipamentoService = {
 
-  async listar(query: Record<string, unknown>) {
+  // funcionarioId: só definido quando quem pede é um Tecnico — restringe
+  // aos equipamentos destacados a esse Funcionario (ver auth.middleware /
+  // req.user.funcionarioId). Undefined para os outros papéis = vê tudo
+  // (já filtrado por empresaId nesses casos).
+  async listar(query: Record<string, unknown>, funcionarioId?: string) {
     const pagination = parsePagination(query)
 
     const where: Prisma.EquipamentoWhereInput = {
@@ -19,6 +23,7 @@ export const EquipamentoService = {
           { localizacao: { contains: query.search as string, mode: 'insensitive' } },
         ],
       }),
+      ...(funcionarioId && { funcionariosDestacados: { some: { funcionarioId } } }),
     }
 
     const [equipamentos, total] = await prisma.$transaction([
@@ -38,7 +43,7 @@ export const EquipamentoService = {
     return paginar(equipamentos, total, pagination)
   },
 
-  async buscarPorId(id: string, empresaId?: string) {
+  async buscarPorId(id: string, empresaId?: string, funcionarioId?: string) {
     const equipamento = await prisma.equipamento.findUnique({
       where:   { id },
       include: {
@@ -55,8 +60,56 @@ export const EquipamentoService = {
     if (empresaId && equipamento.empresaId !== empresaId) {
       throw new NotFoundError('Equipamento não encontrado')
     }
+    if (funcionarioId) {
+      const destaque = await prisma.equipamentoDestacado.findUnique({
+        where: { funcionarioId_equipamentoId: { funcionarioId, equipamentoId: id } },
+      })
+      if (!destaque) throw new NotFoundError('Equipamento não encontrado')
+    }
 
     return equipamento
+  },
+
+  // ── Destaque de equipamentos a Funcionarios (Técnicos) ────────────────
+
+  async destacarFuncionario(equipamentoId: string, funcionarioId: string, destacadoPorId: string, empresaId?: string) {
+    const equipamento = await EquipamentoService.buscarPorId(equipamentoId, empresaId)
+
+    const funcionario = await prisma.funcionario.findUnique({ where: { id: funcionarioId } })
+    if (!funcionario) throw new NotFoundError('Funcionário não encontrado')
+    if (funcionario.empresaId !== equipamento.empresaId) {
+      throw new ConflictError('O funcionário não pertence à mesma empresa do equipamento')
+    }
+
+    const existente = await prisma.equipamentoDestacado.findUnique({
+      where: { funcionarioId_equipamentoId: { funcionarioId, equipamentoId } },
+    })
+    if (existente) throw new ConflictError('Este equipamento já está destacado a este funcionário')
+
+    return prisma.equipamentoDestacado.create({
+      data: { equipamentoId, funcionarioId, destacadoPorId },
+      include: { funcionario: { select: { id: true, nome: true, cargo: true } } },
+    })
+  },
+
+  async removerDestaque(equipamentoId: string, funcionarioId: string, empresaId?: string) {
+    await EquipamentoService.buscarPorId(equipamentoId, empresaId)
+
+    const destaque = await prisma.equipamentoDestacado.findUnique({
+      where: { funcionarioId_equipamentoId: { funcionarioId, equipamentoId } },
+    })
+    if (!destaque) throw new NotFoundError('Este equipamento não está destacado a este funcionário')
+
+    await prisma.equipamentoDestacado.delete({ where: { id: destaque.id } })
+  },
+
+  async listarDestacados(equipamentoId: string, empresaId?: string) {
+    await EquipamentoService.buscarPorId(equipamentoId, empresaId)
+    return prisma.equipamentoDestacado.findMany({
+      where:   { equipamentoId },
+      include: { funcionario: { select: { id: true, nome: true, cargo: true, status: true } } },
+      orderBy: { criadoEm: 'desc' },
+    })
   },
 
   async criar(data: {

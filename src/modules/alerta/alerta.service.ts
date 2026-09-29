@@ -6,7 +6,9 @@ import { parsePagination, paginar }     from '@/shared/utils/page'
 
 export const AlertaService = {
 
-  async listar(query: Record<string, any>) {
+  // funcionarioId: só definido quando quem pede é um Tecnico — restringe
+  // aos alertas de equipamentos destacados a esse Funcionario.
+  async listar(query: Record<string, any>, funcionarioId?: string) {
     const pagination = parsePagination(query)
     const where: any = {}
     if (query.empresaId)     where.empresaId     = query.empresaId
@@ -18,6 +20,9 @@ export const AlertaService = {
       where.criadoEm = {}
       if (query.dataInicio) where.criadoEm.gte = new Date(query.dataInicio)
       if (query.dataFim)    where.criadoEm.lte = new Date(query.dataFim)
+    }
+    if (funcionarioId) {
+      where.equipamento = { funcionariosDestacados: { some: { funcionarioId } } }
     }
 
     const [alertas, total] = await prisma.$transaction([
@@ -37,7 +42,7 @@ export const AlertaService = {
     return paginar(alertas, total, pagination)
   },
 
-  async buscarPorId(id: string, empresaId?: string) {
+  async buscarPorId(id: string, empresaId?: string, funcionarioId?: string) {
     const a = await prisma.alerta.findUnique({
       where:   { id },
       include: {
@@ -48,6 +53,12 @@ export const AlertaService = {
     })
     if (!a) throw new NotFoundError('Alerta não encontrado')
     if (empresaId && a.empresaId !== empresaId) throw new NotFoundError('Alerta não encontrado')
+    if (funcionarioId) {
+      const destaque = await prisma.equipamentoDestacado.findUnique({
+        where: { funcionarioId_equipamentoId: { funcionarioId, equipamentoId: a.equipamentoId } },
+      })
+      if (!destaque) throw new NotFoundError('Alerta não encontrado')
+    }
     return a
   },
 
@@ -65,8 +76,8 @@ export const AlertaService = {
   // status do tratamento (ex: pedir apoio) e deixar uma nota — o
   // escopoEmpresa já garante que Cliente/Tecnico só alteram alertas da
   // própria empresa (buscarPorId lança NotFoundError se não pertencer).
-  async atualizar(id: string, data: { nivel?: NivelAlerta; status?: StatusAlerta; notaTecnico?: string }, empresaId?: string) {
-    await AlertaService.buscarPorId(id, empresaId)
+  async atualizar(id: string, data: { nivel?: NivelAlerta; status?: StatusAlerta; notaTecnico?: string }, empresaId?: string, funcionarioId?: string) {
+    await AlertaService.buscarPorId(id, empresaId, funcionarioId)
     return prisma.alerta.update({
       where:   { id },
       data,
@@ -77,8 +88,8 @@ export const AlertaService = {
     })
   },
 
-  async marcarComoLido(id: string, usuarioId: string, empresaId?: string) {
-    const a = await AlertaService.buscarPorId(id, empresaId)
+  async marcarComoLido(id: string, usuarioId: string, empresaId?: string, funcionarioId?: string) {
+    const a = await AlertaService.buscarPorId(id, empresaId, funcionarioId)
     if (a.lidoEm) throw new ConflictError('Alerta já foi marcado como lido')
     return prisma.alerta.update({
       where: { id },
@@ -95,9 +106,10 @@ export const AlertaService = {
     return prisma.alerta.delete({ where: { id } })
   },
 
-  async resumo(empresaId?: string) {
+  async resumo(empresaId?: string, funcionarioId?: string) {
     const where: any = {}
     if (empresaId) where.empresaId = empresaId
+    if (funcionarioId) where.equipamento = { funcionariosDestacados: { some: { funcionarioId } } }
 
     const [total, naoLidos, porNivel] = await prisma.$transaction([
       prisma.alerta.count({ where }),
@@ -123,9 +135,13 @@ const contagem: Record<NivelAlerta, number> = {
     return { total, naoLidos, porNivel: contagem }
   },
 
-  async naoLidosRecentes(empresaId: string, limite = 10) {
+  async naoLidosRecentes(empresaId: string, limite = 10, funcionarioId?: string) {
     return prisma.alerta.findMany({
-      where:   { empresaId, lidoEm: null },
+      where: {
+        empresaId,
+        lidoEm: null,
+        ...(funcionarioId && { equipamento: { funcionariosDestacados: { some: { funcionarioId } } } }),
+      },
       orderBy: [{ nivel: 'desc' }, { criadoEm: 'desc' }],
       take:    limite,
       include: { equipamento: { select: { id: true, nome: true, localizacao: true } } },

@@ -154,6 +154,7 @@ describe('Alerta - Integration', () => {
         expect.objectContaining({
           empresaId: EMP_TAAG,
         }),
+        undefined,
       )
     })
 
@@ -181,6 +182,7 @@ describe('Alerta - Integration', () => {
         expect.objectContaining({
           empresaId: EMP_TAAG,
         }),
+        undefined,
       )
 
       expect(AlertaService.listar).not.toHaveBeenCalledWith(
@@ -209,6 +211,7 @@ describe('Alerta - Integration', () => {
       expect(AlertaService.buscarPorId).toHaveBeenCalledWith(
         'alerta-taag-1',
         EMP_TAAG,
+        undefined,
       )
     })
 
@@ -231,6 +234,7 @@ describe('Alerta - Integration', () => {
       expect(AlertaService.buscarPorId).toHaveBeenCalledWith(
         'alerta-sonangol-1',
         EMP_TAAG,
+        undefined,
       )
     })
   })
@@ -307,6 +311,7 @@ describe('Alerta - Integration', () => {
         'alerta-taag-1',
         'usuario-taag',
         EMP_TAAG,
+        undefined,
       )
     })
 
@@ -330,6 +335,7 @@ describe('Alerta - Integration', () => {
         'alerta-sonangol-1',
         'usuario-taag',
         EMP_TAAG,
+        undefined,
       )
     })
   })
@@ -405,6 +411,7 @@ describe('Alerta - Integration', () => {
 
       expect(AlertaService.resumo).toHaveBeenCalledWith(
         EMP_TAAG,
+        undefined,
       )
     })
   })
@@ -431,6 +438,8 @@ describe('Alerta - Integration', () => {
 
       expect(AlertaService.naoLidosRecentes).toHaveBeenCalledWith(
         EMP_TAAG,
+        10,
+        undefined,
       )
     })
   })

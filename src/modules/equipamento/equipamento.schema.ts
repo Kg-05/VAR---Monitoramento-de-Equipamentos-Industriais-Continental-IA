@@ -13,3 +13,7 @@ export const criarEquipamentoSchema = z.object({
 export const atualizarEquipamentoSchema = criarEquipamentoSchema.partial().extend({
   status: z.enum(['Operacional', 'Manutencao']).optional(),
 })
+
+export const destacarFuncionarioSchema = z.object({
+  funcionarioId: z.string().uuid(),
+})
