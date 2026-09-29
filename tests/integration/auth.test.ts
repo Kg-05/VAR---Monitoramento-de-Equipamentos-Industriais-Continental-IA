@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import request from 'supertest'
 import express from 'express'
+import type { Request, Response, NextFunction } from 'express'
 
 import { authRoutes } from '../../src/modules/auth/auth.routes'
 import { AuthService } from '../../src/modules/auth/auth.service'
@@ -9,6 +10,15 @@ vi.mock('../../src/modules/auth/auth.service', () => ({
   AuthService: {
     login: vi.fn(),
   },
+}))
+
+// Este ficheiro testa o contrato da rota de login (validação, respostas),
+// não o rate limiting (que tem o seu próprio teste) — sem isto, os vários
+// pedidos feitos abaixo acabam por esgotar o limite real de tentativas e
+// fazem os testes seguintes falhar com 429 em vez do status esperado.
+vi.mock('../../src/shared/middlewares/rateLimit.middleware', () => ({
+  loginRateLimit: (_req: Request, _res: Response, next: NextFunction) => next(),
+  globalRateLimit: (_req: Request, _res: Response, next: NextFunction) => next(),
 }))
 
 const app = express()

@@ -20,6 +20,7 @@ import { plataformaRoutes } from '@/modules/plataforma/plataforma.routes'
 import { backupRoutes } from '@/modules/backup/backup.routes'
 import { tratarErros } from '@/shared/middlewares/error.middleware'
 import { registrarLog } from '@/shared/middlewares/logger.middleware'
+import { globalRateLimit } from '@/shared/middlewares/rateLimit.middleware'
 
 // após criar o app:
 
@@ -51,7 +52,19 @@ app.use(cors({
 app.use(express.json())
 app.use(registrarLog)
 
-// Serve ficheiros estáticos (comprovativos/documentos enviados)
+// Limite de pedidos aplicado a toda a API, além do limite mais apertado
+// já existente só no login.
+app.use(globalRateLimit)
+
+// Serve ficheiros estáticos (comprovativos/documentos enviados).
+//
+// SEGURANÇA (ver relatório de auditoria): isto está público, protegido só
+// pelo nome do ficheiro ser difícil de adivinhar (aleatório) — não é uma
+// proteção real. Não pomos autenticação aqui porque os `<img src="...">`
+// do frontend não conseguem enviar o cabeçalho Authorization; fazer isto
+// correctamente exige o frontend passar a buscar as imagens via fetch()
+// autenticado + blob URL (ou usar URLs assinadas/temporárias), o que é
+// uma mudança coordenada de frontend que não foi feita nesta auditoria.
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 
 const v1 = '/api/v1'

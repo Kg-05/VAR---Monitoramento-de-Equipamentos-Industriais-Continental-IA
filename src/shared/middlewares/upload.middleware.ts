@@ -22,13 +22,18 @@ const storage = multer.diskStorage({
 })
 
 const EXTENSOES_PERMITIDAS = ['.pdf', '.jpg', '.jpeg', '.png']
+const MIMES_PERMITIDOS     = ['application/pdf', 'image/jpeg', 'image/png']
 
 export const uploadDocumento = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase()
-    if (EXTENSOES_PERMITIDAS.includes(ext)) {
+    // Verifica extensão E mimetype reportado — nenhum dos dois é a
+    // prova definitiva (ambos vêm do cliente e são falsificáveis), mas
+    // exigir os dois coerentes já barra o caso trivial de só renomear
+    // a extensão de um ficheiro de outro tipo.
+    if (EXTENSOES_PERMITIDAS.includes(ext) && MIMES_PERMITIDOS.includes(file.mimetype)) {
       cb(null, true)
     } else {
       cb(new Error('Tipo de ficheiro não permitido. Use PDF, JPG ou PNG.'))
@@ -53,13 +58,14 @@ const storageImagens = multer.diskStorage({
 })
 
 const EXTENSOES_IMAGEM_PERMITIDAS = ['.jpg', '.jpeg', '.png']
+const MIMES_IMAGEM_PERMITIDOS     = ['image/jpeg', 'image/png']
 
 export const uploadImagem = multer({
   storage: storageImagens,
   limits:  { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase()
-    if (EXTENSOES_IMAGEM_PERMITIDAS.includes(ext)) {
+    if (EXTENSOES_IMAGEM_PERMITIDAS.includes(ext) && MIMES_IMAGEM_PERMITIDOS.includes(file.mimetype)) {
       cb(null, true)
     } else {
       cb(new Error('Tipo de ficheiro não permitido. Use JPG ou PNG.'))

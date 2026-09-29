@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { BackupService } from './backup.service'
 import { AppError } from '@/shared/errors/AppError'
+import { restaurarBackupSchema } from './backup.schema'
 
 export async function exportarBackup(req: Request, res: Response, next: NextFunction) {
   try {
@@ -13,13 +14,19 @@ export async function exportarBackup(req: Request, res: Response, next: NextFunc
 export async function restaurarBackup(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.file) throw new AppError('Nenhum ficheiro de backup enviado', 400)
-    let backup: unknown
+    let backupBruto: unknown
     try {
-      backup = JSON.parse(req.file.buffer.toString('utf-8'))
+      backupBruto = JSON.parse(req.file.buffer.toString('utf-8'))
     } catch {
       throw new AppError('Ficheiro de backup não é um JSON válido', 400)
     }
-    const resultado = await BackupService.restaurar(backup)
+
+    const validado = restaurarBackupSchema.safeParse(backupBruto)
+    if (!validado.success) {
+      throw new AppError('Ficheiro de backup com formato inválido', 400)
+    }
+
+    const resultado = await BackupService.restaurar(validado.data)
     return res.status(200).json({ success: true, data: resultado })
   } catch (e) { next(e) }
 }
