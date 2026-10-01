@@ -54,7 +54,7 @@ async function emitirToken(usuario: { id: string; papel: string; empresaId: stri
 
 // Técnico loga como Usuario normal, mas o app precisa do perfil do
 // Funcionario vinculado (cargo/telefone) logo após o login.
-async function montarRespostaUsuario(usuario: { id: string; nome: string; email: string; papel: string; empresaId: string | null; permissaoAlertas: boolean; permissaoGestao: boolean; funcionarioId: string | null }) {
+async function montarRespostaUsuario(usuario: { id: string; nome: string; email: string; papel: string; empresaId: string | null; permissaoAlertas: boolean; permissaoGestao: boolean; funcionarioId: string | null; avatarUrl: string | null }) {
   const funcionario = usuario.funcionarioId
     ? await prisma.funcionario.findUnique({
         where:  { id: usuario.funcionarioId },
@@ -71,6 +71,7 @@ async function montarRespostaUsuario(usuario: { id: string; nome: string; email:
     permissaoAlertas: usuario.permissaoAlertas,
     permissaoGestao:  usuario.permissaoGestao,
     funcionarioId:    usuario.funcionarioId,
+    avatarUrl:        usuario.avatarUrl,
     funcionario,
   }
 }
